@@ -23,4 +23,8 @@
     </Using>
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="ApiControllers\" />
+  </ItemGroup>
+
 </Project>
