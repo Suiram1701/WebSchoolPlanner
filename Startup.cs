@@ -1,4 +1,9 @@
-﻿namespace WebSchoolPlanner;
+﻿using Microsoft.AspNetCore.Mvc.ApiExplorer;
+using Microsoft.Extensions.Options;
+using Swashbuckle.AspNetCore.SwaggerGen;
+using WebSchoolPlanner.Swagger;
+
+namespace WebSchoolPlanner;
 
 public class Startup
 {
@@ -12,6 +17,8 @@ public class Startup
             options.GroupNameFormat = "'v'VVV";
             options.SubstituteApiVersionInUrl = true;
         });
+
+        services.AddTransient<IConfigureOptions<SwaggerGenOptions>, SwaggerConfigureOptions>();
         services.AddSwaggerGen();
     }
 
@@ -22,6 +29,16 @@ public class Startup
 
         app.UseApiVersioning();
         app.UseSwagger();
-        app.UseSwaggerUI();
+        app.UseSwaggerUI(options =>
+        {
+            // Register all api versions
+            IApiVersionDescriptionProvider provider = app.ApplicationServices.GetService<IApiVersionDescriptionProvider>()!;
+            foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
+            {
+                string url = $"/swagger/{description.GroupName}/swagger.json";
+                string name = description.GroupName.ToUpperInvariant();
+                options.SwaggerEndpoint(url, name);
+            }
+        });
     }
 }
