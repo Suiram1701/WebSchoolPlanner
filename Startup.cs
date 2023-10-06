@@ -16,7 +16,7 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        services.AddControllers();
+        services.AddControllersWithViews();
 
         services.AddApiVersioning();
         services.AddVersionedApiExplorer(options =>
@@ -31,6 +31,7 @@ public class Startup
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
+        app.UseStaticFiles();
         app.UseRouting();
         app.UseEndpoints(options => options.MapControllers());
 
