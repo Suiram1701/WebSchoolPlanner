@@ -1,7 +1,6 @@
 ﻿using Microsoft.Extensions.DependencyInjection.Extensions;
 using Microsoft.Extensions.Options;
 using Swashbuckle.AspNetCore.SwaggerGen;
-using WebSchoolPlanner.Localization;
 using WebSchoolPlanner.Swagger;
 
 namespace WebSchoolPlanner.Extensions;

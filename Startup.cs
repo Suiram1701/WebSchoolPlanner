@@ -7,9 +7,12 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Globalization;
 using WebSchoolPlanner.Extensions;
 using Microsoft.AspNetCore.Mvc.Razor;
-using WebSchoolPlanner.Localization;
 using WebSchoolPlanner.RouteConstraints;
 using System.Reflection;
+using WebSchoolPlanner.Db.Models;
+using Microsoft.AspNetCore.Identity;
+using WebSchoolPlanner.Db;
+using Microsoft.EntityFrameworkCore;
 
 namespace WebSchoolPlanner;
 
@@ -107,6 +110,27 @@ public class Startup
 
         if (_configuration["Swagger:Use"] == true.ToString())
             services.AddSwagger();
+
+        // Database / authentication
+        services
+            .AddDbContext<WebSchoolPlannerDbContext>(options =>
+            {
+                string connectionString = _configuration.GetConnectionString("WebSchoolPlannerDbContext")
+                    ?? throw new ArgumentNullException(nameof(connectionString), "A connection string for the database 'WebSchoolPlannerDbContext' is required.");
+                options.UseSqlServer(connectionString);
+
+            }, ServiceLifetime.Singleton, ServiceLifetime.Transient)
+            .AddIdentity<User, Role>(options =>
+            {
+                options.User.RequireUniqueEmail = true;
+                options.Lockout.MaxFailedAccessAttempts = 10;
+            })
+            .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
+            .AddDefaultTokenProviders();
+
+        services.AddSession();
+        services.AddAuthentication();
+        services.AddAuthorization();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -121,6 +145,11 @@ public class Startup
         app
             .UseHttpsRedirection()
             .UseStaticFiles();
+
+        // Authentication
+        app
+            .UseAuthentication()
+            .UseAuthorization();
 
         // Routing
         app
