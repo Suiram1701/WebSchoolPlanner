@@ -27,11 +27,16 @@
     <Using Include="WebSchoolPlanner.Constants">
       <Static>True</Static>
     </Using>
+    <Using Include="WebSchoolPlanner.RegExes">
+      <Static>True</Static>
+    </Using>
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="ApiControllers\" />
+    <Folder Include="Localization\" />
     <Folder Include="Models\" />
+    <Folder Include="Controllers\" />
     <Folder Include="Views\Shared\" />
     <Folder Include="wwwroot\css\" />
     <Folder Include="wwwroot\js\" />

@@ -8,14 +8,13 @@ using System.Globalization;
 using WebSchoolPlanner.Extensions;
 using Microsoft.AspNetCore.Mvc.Razor;
 using WebSchoolPlanner.Localization;
-using Microsoft.AspNetCore.Mvc;
+using WebSchoolPlanner.RouteConstraints;
+using System.Reflection;
 
 namespace WebSchoolPlanner;
 
 public class Startup
 {
-    private const string _localizationPath = "Localization";
-
     private readonly IConfiguration _configuration;
 
     public Startup(IConfiguration configuration)
@@ -25,14 +24,27 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
+        // Routing
+        services.Configure<RouteOptions>(options =>
+        {
+            IEnumerable<RouteConstraintAttribute> attributes = typeof(Program).Assembly.GetTypes()
+                .Where(type => type.GetInterface(nameof(IRouteConstraint)) is not null)     // Only types that implement IRouteConstraint
+                .Select(type => type.GetCustomAttribute<RouteConstraintAttribute>())
+                .Where(attribute => attribute is not null)!;     // Filter types that don't have the attribute
+
+            // Add custom route constraints
+            foreach (RouteConstraintAttribute attribute in attributes)
+                options.ConstraintMap.Add(attribute.Name, attribute.Type);
+        });
+
         // MVC
         services
             .AddControllersWithViews()
-            .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, options => options.ResourcesPath = _localizationPath);
+            .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, options => options.ResourcesPath = "Localization");
 
         // Localization
         services
-            .AddLocalization(options => options.ResourcesPath = _localizationPath)
+            .AddLocalization(options => options.ResourcesPath = "Localization")
             .AddRequestLocalization(options =>
             {
                 List<CultureInfo> uiCultures = new()
@@ -68,10 +80,19 @@ public class Startup
                 options.ApplyCurrentCultureToResponseHeaders = true;
 
                 // Providers
-                options.RequestCultureProviders = new List<Microsoft.AspNetCore.Localization.IRequestCultureProvider>()
+                options.RequestCultureProviders = new List<IRequestCultureProvider>
                 {
-                    new RouteValueCultureProvider { Options = options },
-                    new HeaderValueCultureProvider { Options = options }
+                    new RouteDataRequestCultureProvider
+                    {
+                        Options = options,
+                        RouteDataStringKey = LanguageRouteKey,
+                        UIRouteDataStringKey = LanguageRouteKey
+                    },
+                    new AcceptLanguageHeaderRequestCultureProvider
+                    {
+                        Options = options,
+                        MaximumAcceptLanguageHeaderValuesToTry = 10
+                    }
                 };
             });
 
@@ -104,7 +125,7 @@ public class Startup
         // Routing
         app
             .UseRouting()
-            .UseRequestLocalization()
+            .UseLocalization("/api", "/swagger")
             .UseEndpoints(endpoints => endpoints.MapControllers());
 
         // Api / Swagger
