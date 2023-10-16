@@ -1,0 +1,41 @@
+﻿@model LoginModel;
+
+@inject IViewLocalizer _localizer;
+
+@{
+    ViewData["Title"] = _localizer["Login"];
+}
+
+@section Stylesheets {
+    <link rel="stylesheet" type="text/css" href="~/css/Auth/Login.css" />
+}
+
+<div class="form-signin w-100 m-auto">
+    <h1 class="h3 mb-3 fw-normal">@_localizer["plsSignIn"]</h1>
+
+    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" >
+
+        <!-- Email input -->
+        <div class="form-floating">
+            <input type="email" class="form-control" id="emailInput" value="@Model?.Email" asp-for="Email" required />
+            <label for="emailInput">@_localizer["EmailLabel"]</label>
+        </div>
+
+        <!-- Passwd input -->
+        <div class="form-floating">  
+            <input type="password" class="form-control" id="passwdInput" asp-for="Password" required />
+            <label for="passwdInput">@_localizer["PasswdLabel"]</label>
+        </div>
+
+        <!-- Remember browser -->
+        <div class="checkbox mb-3">
+            <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
+            <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
+        </div>
+
+        @Html.AntiForgeryToken()
+
+        <!-- Submit -->
+        <button class="w-100 btn btn-lg btn-primary" id="form-submit" type="submit">@_localizer["Login"]</button>
+    </form>
+</div>

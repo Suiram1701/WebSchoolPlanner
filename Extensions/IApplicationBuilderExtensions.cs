@@ -32,7 +32,9 @@ public static class IApplicationBuilderExtensions
 
     private static Task LocalizationRedirectionMiddleware(HttpContext httpContext, RequestDelegate next)
     {
-        string? languageCode = httpContext.GetRouteValue(LanguageRouteKey)?.ToString();
+        string? languageCode = httpContext.Request.Path.Value!.Split('/')[1];
+        if (!CultureRegex().IsMatch(languageCode))
+            languageCode = null;
 
         string currentCultureString = Thread.CurrentThread.CurrentUICulture.Name;
         string newPath;

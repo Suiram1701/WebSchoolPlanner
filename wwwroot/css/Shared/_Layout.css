@@ -1,0 +1,8 @@
+﻿.title-header {
+    flex-direction: row;
+    align-items: flex-end;
+}
+
+.title-header img {
+    margin-right: 12px;
+}

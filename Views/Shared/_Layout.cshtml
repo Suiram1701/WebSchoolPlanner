@@ -1,0 +1,76 @@
+﻿@inject IViewLocalizer _localizer;
+
+<!DOCTYPE html>
+<html lang="@ViewBag.UICulture" dir="ltr" data-bs-theme="@ViewBag.Theme.ToString().ToLower()">
+    <head>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+        <title>@ViewData["Title"] - @ViewBag.AppName</title>
+
+        <link rel="icon" type="image/png" href="~/favicon-16x16.png" sizes="16x16" />
+        <link rel="icon" type="image/png" href="~/favicon-32x32.png" sizes="32x32" />
+        <link rel="icon" type="image/png" href="~/favicon-96x96.png" sizes="96x96" />
+
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+        <link rel="stylesheet" type="text/css" href="~/css/Shared/_Layout.css" />
+        @RenderSection("Stylesheets", false)
+    </head>
+    <body class="align-items-center bg-body-tertiary">
+
+        <!-- Navbar -->
+        <nav class="navbar navbar-expand-sm navbar-content bg-body-secondary">
+            <div class="container-fluid">
+                <a class="navbar-brand d-flex title-header" asp-controller="Dashboard" asp-action="Index" asp-route-languageCode="@ViewBag.UICulture">
+                    <img class="d-inline-block align-text-top" src="~/img/school.svg" alt="Logo" height="43" width="43" />
+                    <h4>@ViewBag.AppName</h4>
+                </a>
+            </div>
+
+        @{
+            bool IsNavbarItemSelected(string controller, string action)
+            {
+                string currentController = (string)Context.GetRouteValue("controller")!;
+                string currentAction = (string)Context.GetRouteValue("action")!;
+                return controller == currentController && action == currentAction;
+            }
+        }
+
+            <!-- Other docs -->
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                </ul>
+            </div>
+
+        @if (!User.Identity?.IsAuthenticated ?? true)
+        {
+            <!-- Account -->
+            <div class="container-fluid">
+                <ul class="navbar-nav">
+                    <li class="navbar-item d-flex">
+                        <img src="~/img/login.svg" />
+                        @if (IsNavbarItemSelected("Auth", "Login"))
+                        {
+                            <a class="nav-link active" aria-current="page" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture">@_localizer["Signin"]</a>
+                        }
+                        else
+                        {
+                            <a class="nav-link" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture">@_localizer["Signin"]</a>
+                        }
+                    </li>
+                </ul>
+            </div>
+        }
+    </nav>
+
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+    }
+        <main class="w-100 m-auto py-4">
+        @RenderBody()
+        </main>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+        @RenderSection("Scripts", false)
+    </body>
+</html>

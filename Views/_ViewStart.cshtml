@@ -1,1 +1,10 @@
-﻿
+﻿@inject IConfiguration _configuration;
+
+@{
+    ViewBag.AppName = _configuration["ApplicationName"];
+    ViewBag.Culture = Thread.CurrentThread.CurrentCulture.Name;
+    ViewBag.UICulture = Thread.CurrentThread.CurrentUICulture.Name;
+    ViewBag.Theme = Theme.Dark;
+
+    Layout = "_Layout";
+}

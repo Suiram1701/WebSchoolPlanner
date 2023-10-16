@@ -122,11 +122,19 @@ public class Startup
             }, ServiceLifetime.Singleton, ServiceLifetime.Transient)
             .AddIdentity<User, Role>(options =>
             {
-                options.User.RequireUniqueEmail = true;
                 options.Lockout.MaxFailedAccessAttempts = 10;
             })
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders();
+
+        services.ConfigureApplicationCookie(options =>
+        {
+            options.LoginPath = "/Auth/Login";
+            options.LogoutPath = "/Auth/Logout";
+
+            options.SlidingExpiration = true;
+            options.ReturnUrlParameter = "returnUrl";
+        });
 
         services.AddSession();
         services.AddAuthentication();
@@ -146,14 +154,12 @@ public class Startup
             .UseHttpsRedirection()
             .UseStaticFiles();
 
-        // Authentication
-        app
-            .UseAuthentication()
-            .UseAuthorization();
-
         // Routing
         app
             .UseRouting()
+            .UseSession()
+            .UseAuthentication()
+            .UseAuthorization()
             .UseLocalization("/api", "/swagger")
             .UseEndpoints(endpoints => endpoints.MapControllers());
 
