@@ -10,10 +10,22 @@
     margin-bottom: -1px;
 }
 
+.form-invalid input[type="email"] {
+    border-left-color: var(--bs-form-invalid-color);
+    border-top-color: var(--bs-form-invalid-color);
+    border-right-color: var(--bs-form-invalid-color);
+}
+
 .form-signin input[type="password"] {
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
     margin-top: -1px;
+}
+
+.form-invalid input[type="password"] {
+    border-left-color: var(--bs-form-invalid-color);
+    border-bottom-color: var(--bs-form-invalid-color);
+    border-right-color: var(--bs-form-invalid-color);
 }
 
 .form-signin div[class="checkbox mb-3"] {

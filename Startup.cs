@@ -157,10 +157,10 @@ public class Startup
         // Routing
         app
             .UseRouting()
+            .UseLocalization("/api", "/swagger")
             .UseSession()
             .UseAuthentication()
             .UseAuthorization()
-            .UseLocalization("/api", "/swagger")
             .UseEndpoints(endpoints => endpoints.MapControllers());
 
         // Api / Swagger

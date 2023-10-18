@@ -1,17 +1,21 @@
-﻿@model LoginModel;
+﻿@using Humanizer;
+
+@model LoginModel;
 
 @inject IViewLocalizer _localizer;
 
 @{
     ViewData["Title"] = _localizer["Login"];
+
+    bool IsLoginFailed = (ViewBag.IsLoginFailed ?? false) || ViewBag.LockOutEnd is DateTimeOffset;
 }
 
 @section Stylesheets {
     <link rel="stylesheet" type="text/css" href="~/css/Auth/Login.css" />
 }
 
-<div class="form-signin w-100 m-auto">
-    <h1 class="h3 mb-3 fw-normal">@_localizer["plsSignIn"]</h1>
+<div class="w-100 m-auto form-signin @{ if (IsLoginFailed) {<text>form-invalid</text>}}">
+    <h1 class="h3 mb-3 fw-normal">@_localizer["PlsSignIn"]</h1>
 
     <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" >
 
@@ -26,6 +30,25 @@
             <input type="password" class="form-control" id="passwdInput" asp-for="Password" required />
             <label for="passwdInput">@_localizer["PasswdLabel"]</label>
         </div>
+
+        @if (ViewBag.IsLoginFailed ?? false)
+        {
+            <div class="invalid-feedback d-block">
+                @_localizer["InvalidLoginData"];
+            </div>
+        }
+        else if (ViewBag.IsNotAllowed ?? false)
+        {
+            <div class="invalid-feedback d-block">
+                @_localizer["NotAllowed"]
+            </div>
+        }
+        else if (ViewBag.LockOutEnd is DateTimeOffset dateTimeOffset)
+        {
+            <div class="invalid-feedback d-block">
+                @_localizer["UserLocked", dateTimeOffset.Humanize()]
+            </div>
+        }
 
         <!-- Remember browser -->
         <div class="checkbox mb-3">

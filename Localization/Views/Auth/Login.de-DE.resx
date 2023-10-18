@@ -109,7 +109,16 @@
   <data name="RememberMeLabel" xml:space="preserve">
     <value>Angemeldet bleiben</value>
   </data>
-  <data name="plsSignIn" xml:space="preserve">
+  <data name="PlsSignIn" xml:space="preserve">
     <value>Bitte einloggen</value>
+  </data>
+  <data name="InvalidLoginData" xml:space="preserve">
+    <value>Der Benutzername oder das Passwort ist ungültig</value>
+  </data>
+  <data name="UserLocked" xml:space="preserve">
+    <value>Der Benutzer ist derzeit blockiert. Versuchen Sie es erneut {0}.</value>
+  </data>
+  <data name="NotAllowed" xml:space="preserve">
+    <value>Es ist derzeit nicht erlaubt, sich in das Konto einzuloggen.</value>
   </data>
 </root>

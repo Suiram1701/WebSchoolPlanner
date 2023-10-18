@@ -7,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Models;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
+using Humanizer;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -51,11 +52,6 @@ public sealed class AuthController : Controller
             }
 
             SignInResult result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
-            if (!result.Succeeded)     // Invalid / passwd
-            {
-                ViewBag.IsLoginFailed = true;
-                return View(nameof(Login), model);
-            }
             if (result.RequiresTwoFactor)     // Redirect to 2FA validation
                 return RedirectToAction(nameof(TFAValidate), new
                 {
@@ -64,11 +60,23 @@ public sealed class AuthController : Controller
                 });
             else if (result.IsLockedOut)
             {
-                ViewBag.LockOutEnd = await _userManager.GetLockoutEndDateAsync(user);
-                return View(nameof(Login), model);     // Display lockout msg
+                DateTimeOffset? lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+                if (lockoutEnd?.DateTime > DateTime.UtcNow)
+                {
+                    ViewBag.LockOutEnd = lockoutEnd;
+                    return View(nameof(Login), model);     // Display lockout msg
+                }
             }
-            else if (result.IsNotAllowed)     // TODO: Implement email confirmation error page
-                throw new NotImplementedException();
+            else if (result.IsNotAllowed)
+            {
+                ViewBag.IsNotAllowed = true;
+                return View(nameof(Login), model);
+            }
+            else if (!result.Succeeded)     // Invalid / passwd
+            {
+                ViewBag.IsLoginFailed = true;
+                return View(nameof(Login), model);
+            }
 
             if (returnUrl is not null)
                 return Redirect(returnUrl);
@@ -94,5 +102,25 @@ public sealed class AuthController : Controller
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction(nameof(Login), new { languageCode = _uiCulture });
+    }
+
+    [Route("Lockout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> Lockout()
+    {
+        User user = _userManager.Users.First();
+        var a = await _userManager.SetLockoutEndDateAsync(user, new(DateTime.UtcNow.AddHours(12).AddMinutes(29)));
+
+        return Ok();
+    }
+
+    [Route("EndLockout")]
+    [AllowAnonymous]
+    public async Task<IActionResult> EndLockout()
+    {
+        User user = _userManager.Users.First();
+        var a = _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
+
+        return Ok();
     }
 }

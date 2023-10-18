@@ -109,7 +109,16 @@
   <data name="RememberMeLabel" xml:space="preserve">
     <value></value>
   </data>
-  <data name="plsSignIn" xml:space="preserve">
+  <data name="PlsSignIn" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="InvalidLoginData" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="UserLocked" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="NotAllowed" xml:space="preserve">
     <value></value>
   </data>
 </root>
