@@ -119,6 +119,9 @@
     <value>Der Benutzer ist derzeit blockiert. Versuchen Sie es erneut {0}.</value>
   </data>
   <data name="NotAllowed" xml:space="preserve">
-    <value>Es ist derzeit nicht erlaubt, sich in das Konto einzuloggen.</value>
+    <value>Es ist derzeit nicht erlaubt, sich in dieses Konto einzuloggen.</value>
+  </data>
+  <data name="StateInvalid" xml:space="preserve">
+    <value>Bei der Anfrage ist ein Fehler aufgetreten. Bitte versuche es erneut.</value>
   </data>
 </root>

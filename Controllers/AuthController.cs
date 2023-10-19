@@ -30,9 +30,9 @@ public sealed class AuthController : Controller
 
     [AllowAnonymous]
     [Route("Login")]
-    [SuppressMessage("Style", "IDE0060")]
     public IActionResult Login([FromQuery] string? returnUrl)
     {
+        ViewBag.ReturnUrl = returnUrl;
         return View();
     }
 
@@ -40,8 +40,10 @@ public sealed class AuthController : Controller
     [AllowAnonymous]
     [Route("Login")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> LoginAsync([FromQuery] string? returnUrl, [FromForm] LoginModel? model)
+    public async Task<IActionResult> Login([FromQuery] string? returnUrl, [FromForm] LoginModel? model)
     {
+        ViewBag.ReturnUrl = returnUrl;
+
         if (ModelState.IsValid && model is not null)
         {
             // Check if the user exists
@@ -74,6 +76,8 @@ public sealed class AuthController : Controller
             }
             else if (!result.Succeeded)     // Invalid / passwd
             {
+                await _userManager.AccessFailedAsync(user);
+
                 ViewBag.IsLoginFailed = true;
                 return View(nameof(Login), model);
             }
@@ -87,6 +91,7 @@ public sealed class AuthController : Controller
                     routeValues: new { languageCode = _uiCulture });
         }
 
+        ViewBag.IsInvalidState = true;
         return View(nameof(Login), model);
     }
 
@@ -102,25 +107,5 @@ public sealed class AuthController : Controller
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction(nameof(Login), new { languageCode = _uiCulture });
-    }
-
-    [Route("Lockout")]
-    [AllowAnonymous]
-    public async Task<IActionResult> Lockout()
-    {
-        User user = _userManager.Users.First();
-        var a = await _userManager.SetLockoutEndDateAsync(user, new(DateTime.UtcNow.AddHours(12).AddMinutes(29)));
-
-        return Ok();
-    }
-
-    [Route("EndLockout")]
-    [AllowAnonymous]
-    public async Task<IActionResult> EndLockout()
-    {
-        User user = _userManager.Users.First();
-        var a = _userManager.SetLockoutEndDateAsync(user, DateTimeOffset.UtcNow);
-
-        return Ok();
     }
 }

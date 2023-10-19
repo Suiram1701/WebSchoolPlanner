@@ -121,4 +121,7 @@
   <data name="NotAllowed" xml:space="preserve">
     <value></value>
   </data>
+  <data name="StateInvalid" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

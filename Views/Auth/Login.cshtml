@@ -6,18 +6,16 @@
 
 @{
     ViewData["Title"] = _localizer["Login"];
-
-    bool IsLoginFailed = (ViewBag.IsLoginFailed ?? false) || ViewBag.LockOutEnd is DateTimeOffset;
 }
 
 @section Stylesheets {
     <link rel="stylesheet" type="text/css" href="~/css/Auth/Login.css" />
 }
 
-<div class="w-100 m-auto form-signin @{ if (IsLoginFailed) {<text>form-invalid</text>}}">
+<div class="w-100 m-auto form-signin @{if (ViewBag.IsLoginFailed ?? false) {<text>form-invalid</text>}}">
     <h1 class="h3 mb-3 fw-normal">@_localizer["PlsSignIn"]</h1>
 
-    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@Context.Request.Query["returnUrl"]" >
+    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@ViewBag.ReturnUrl">
 
         <!-- Email input -->
         <div class="form-floating">
@@ -37,16 +35,22 @@
                 @_localizer["InvalidLoginData"];
             </div>
         }
+        else if (ViewBag.LockOutEnd is DateTimeOffset dateTimeOffset)
+        {
+            <div class="invalid-feedback d-block">
+                @_localizer["UserLocked", dateTimeOffset.Humanize(culture: (CultureInfo)ViewBag.Culture)]
+            </div>
+        }
         else if (ViewBag.IsNotAllowed ?? false)
         {
             <div class="invalid-feedback d-block">
                 @_localizer["NotAllowed"]
             </div>
         }
-        else if (ViewBag.LockOutEnd is DateTimeOffset dateTimeOffset)
+        else if (ViewBag.IsInvalidState ?? false)
         {
             <div class="invalid-feedback d-block">
-                @_localizer["UserLocked", dateTimeOffset.Humanize()]
+                @_localizer["StateInvalid"]
             </div>
         }
 

@@ -122,7 +122,11 @@ public class Startup
             }, ServiceLifetime.Singleton, ServiceLifetime.Transient)
             .AddIdentity<User, Role>(options =>
             {
-                options.Lockout.MaxFailedAccessAttempts = 10;
+                int maxFailedLoginAttempts = int.Parse(_configuration["Account:MaxFailedSignInAttempts"] ?? "5");
+                double lockOutSeconds = double.Parse(_configuration["Account:LockOutTimeSpan"] ?? "300");
+
+                options.Lockout.MaxFailedAccessAttempts = maxFailedLoginAttempts;
+                options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(lockOutSeconds);
             })
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders();
