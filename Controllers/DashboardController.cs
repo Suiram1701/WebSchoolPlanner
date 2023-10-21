@@ -5,7 +5,7 @@ namespace WebSchoolPlanner.Controllers;
 
 [Authorize]
 [Controller]
-[Route(RoutePrefix)]
+[Route("/")]
 public sealed class DashboardController : Controller
 {
     [Route("")]

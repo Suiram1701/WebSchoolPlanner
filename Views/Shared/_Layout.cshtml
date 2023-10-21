@@ -1,4 +1,7 @@
-﻿@inject IViewLocalizer _localizer;
+﻿@using Microsoft.Extensions.Options;
+
+@inject IViewLocalizer _localizer;
+@inject IOptions<RequestLocalizationOptions> _localizationOptions;
 
 <!DOCTYPE html>
 <html lang="@ViewBag.UICulture" dir="ltr" data-bs-theme="@ViewBag.Theme.ToString().ToLower()">
@@ -17,36 +20,33 @@
         @RenderSection("Stylesheets", false)
     </head>
     <body class="align-items-center bg-body-tertiary">
-
+    @if (User.Identity?.IsAuthenticated ?? false)
+    {
+    }
+    else
+    {
         <!-- Navbar -->
         <nav class="navbar navbar-expand-sm navbar-content bg-body-secondary">
             <div class="container-fluid">
                 <a class="navbar-brand d-flex title-header" asp-controller="Dashboard" asp-action="Index" asp-route-languageCode="@ViewBag.UICulture">
-                    <img class="d-inline-block align-text-top" src="~/img/school.svg" alt="Logo" height="43" width="43" />
+                    <img class="d-inline-block align-text-top" src="~/img/school.svg" height="43" width="43" />
                     <h4>@ViewBag.AppName</h4>
                 </a>
             </div>
 
         @{
             bool IsNavbarItemSelected(string controller, string action)
-            {
-                string currentController = (string)Context.GetRouteValue("controller")!;
-                string currentAction = (string)Context.GetRouteValue("action")!;
-                return controller == currentController && action == currentAction;
-            }
+                {
+                    string currentController = (string)Context.GetRouteValue("controller")!;
+                    string currentAction = (string)Context.GetRouteValue("action")!;
+                    return controller == currentController && action == currentAction;
+                }
         }
 
-            <!-- Other docs -->
-            <div class="container-fluid">
-                <ul class="navbar-nav">
-                </ul>
-            </div>
+            <div class="container-fluid d-flex justify-content-end">
 
-        @if (!User.Identity?.IsAuthenticated ?? true)
-        {
-            <!-- Account -->
-            <div class="container-fluid">
-                <ul class="navbar-nav">
+                <!-- Signin -->
+                <ul class="navbar-nav mx-1">
                     <li class="navbar-item d-flex">
                         <img src="~/img/login.svg" />
                         @if (IsNavbarItemSelected("Auth", "Login"))
@@ -59,13 +59,34 @@
                         }
                     </li>
                 </ul>
-            </div>
-        }
-        </nav>
 
-        @if (User.Identity?.IsAuthenticated ?? false)
-        {
-        }
+                <!-- language selection -->
+                <ul class="navbar-nav mx-1 me-5">
+                    <li class="navbar-item f-flex">
+                        <div class="dropdown">
+                            <button class="btn dropdown-toggle dropdown-toggle-split" data-bs-toggle="dropdown" aria-expanded="false">
+                                <img class="me-1" src="~/img/flag.@(ViewBag.UICulture).svg" height="18" />
+                                @ViewBag.UICulture.DisplayName
+                            </button>
+                            <ul class="dropdown-menu">
+                                @foreach (CultureInfo uiCulture in _localizationOptions.Value.SupportedUICultures!)
+                                {
+                                    bool isCultureSelected = uiCulture.Name == ViewBag.UICulture.Name;
+
+                                    <li>
+                                        <a class="dropdown-item @if (isCultureSelected) {<text>active</text>}" id="languageSwitch" data-culture="@uiCulture">
+                                            <img class="me-1" src="~/img/flag.@(uiCulture).svg" height="15" width="18"/>
+                                            @uiCulture.DisplayName
+                                        </a>
+                                    </li>
+                                }
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    }
         <main role="main" class="w-100 m-auto py-4">
             @RenderBody()
         </main>

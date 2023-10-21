@@ -8,7 +8,7 @@ namespace WebSchoolPlanner.Controllers;
 /// </summary>
 [Controller]
 [AllowAnonymous]
-[Route(RoutePrefix + "Privacy/")]
+[Route("Privacy/")]
 public sealed class PrivacyController : Controller
 {
     /// <summary>

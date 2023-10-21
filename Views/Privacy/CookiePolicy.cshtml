@@ -20,11 +20,12 @@
             string[] neededCookies =
             {
                 ".AspNetCore.Identity.Application",
-                "CSRF_TOKEN"
+                ".AspNetCore.CSRF.TOKEN"
             };
             string[] functionalCookies =
             {
-                "acceptCookiePolicy"
+                ".AspNetCore.acceptCookiePolicy",
+                ".AspNetCore.Culture"
             };
         }
         <!-- Needed cookies -->
@@ -64,5 +65,17 @@
                 </div>
             }
         </div>
+    </div>
+    <div class="col-md-8 mx-auto mt-5">
+        <h4 class="fw-light">@_localizer["CookieManageTitle"]</h4>
+        <p class="lead text-body-secondary">
+            @_localizer["CookieManage"]
+        </p>
+    </div>
+    <div class="col-md-8 mx-auto mt-4">
+        <h4 class="fw-light">@_localizer["CookieChangeTitle"]</h4>
+        <p class="lead text-body-secondary">
+            @_localizer["CookieChange"]
+        </p>
     </div>
 </div>

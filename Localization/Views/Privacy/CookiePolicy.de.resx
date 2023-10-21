@@ -121,13 +121,28 @@
   <data name="FunctionalCookiesTitle" xml:space="preserve">
     <value></value>
   </data>
-  <data name="CSRF_TOKEN.Description" xml:space="preserve">
+  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
     <value></value>
   </data>
   <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
     <value></value>
   </data>
-  <data name="acceptCookiePolicy.Description" xml:space="preserve">
+  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="CookieManageTitle" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="CookieManage" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="CookieChangeTitle" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="CookieChange" xml:space="preserve">
     <value></value>
   </data>
 </root>

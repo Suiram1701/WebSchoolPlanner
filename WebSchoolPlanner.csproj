@@ -47,7 +47,6 @@
 
   <ItemGroup>
     <Folder Include="ApiControllers\" />
-    <Folder Include="wwwroot\img\" />
     <Folder Include="wwwroot\js\Shared\" />
   </ItemGroup>
 

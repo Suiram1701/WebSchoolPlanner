@@ -16,7 +16,7 @@ namespace WebSchoolPlanner.Controllers;
 /// </summary>
 [Authorize]
 [Controller]
-[Route(RoutePrefix + "Auth/")]
+[Route("Auth/")]
 public sealed class AuthController : Controller
 {
     private readonly SignInManager<User> _signInManager;

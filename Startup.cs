@@ -7,7 +7,6 @@ using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Globalization;
 using WebSchoolPlanner.Extensions;
 using Microsoft.AspNetCore.Mvc.Razor;
-using WebSchoolPlanner.RouteConstraints;
 using System.Reflection;
 using WebSchoolPlanner.Db.Models;
 using Microsoft.AspNetCore.Identity;
@@ -27,19 +26,6 @@ public class Startup
 
     public void ConfigureServices(IServiceCollection services)
     {
-        // Routing
-        services.Configure<RouteOptions>(options =>
-        {
-            IEnumerable<RouteConstraintAttribute> attributes = typeof(Program).Assembly.GetTypes()
-                .Where(type => type.GetInterface(nameof(IRouteConstraint)) is not null)     // Only types that implement IRouteConstraint
-                .Select(type => type.GetCustomAttribute<RouteConstraintAttribute>())
-                .Where(attribute => attribute is not null)!;     // Filter types that don't have the attribute
-
-            // Add custom route constraints
-            foreach (RouteConstraintAttribute attribute in attributes)
-                options.ConstraintMap.Add(attribute.Name, attribute.Type);
-        });
-
         // MVC
         services
             .AddControllersWithViews()
@@ -85,11 +71,9 @@ public class Startup
                 // Providers
                 options.RequestCultureProviders = new List<IRequestCultureProvider>
                 {
-                    new RouteDataRequestCultureProvider
+                    new CookieRequestCultureProvider
                     {
-                        Options = options,
-                        RouteDataStringKey = LanguageRouteKey,
-                        UIRouteDataStringKey = LanguageRouteKey
+                        Options = options
                     },
                     new AcceptLanguageHeaderRequestCultureProvider
                     {
@@ -135,7 +119,7 @@ public class Startup
         services
             .AddAntiforgery(options =>
             {
-                options.Cookie.Name = "CSRF_TOKEN";
+                options.Cookie.Name = ".AspNetCore.CSRF.TOKEN";
                 options.FormFieldName = "_CSRF-TOKEN";
                 options.HeaderName = "X-CSRF-TOKEN";
             })
@@ -152,7 +136,7 @@ public class Startup
             .AddCookiePolicy(options =>
             {
                 options.CheckConsentNeeded = context => true;
-                options.ConsentCookie.Name = "acceptCookiePolicy";
+                options.ConsentCookie.Name = ".AspNetCore.acceptCookiePolicy";
                 options.ConsentCookieValue = "true";
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             })
