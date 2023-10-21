@@ -1,0 +1,68 @@
+﻿@inject IViewLocalizer _localizer;
+
+@{
+    ViewData["Title"] = _localizer["Title"];
+}
+
+<div class="py-lg-5 text-center">
+    <div class="col-md-8 mx-auto">
+
+        <!-- Title & description -->
+        <h1 class="fw-light">@_localizer["MainTitle"]</h1>
+        <p class="lead text-body-secondary">
+            @_localizer["Description"]
+        </p>
+    </div>
+    <div class="col-md-8 mx-auto mt-5">
+        <h4 class="fw-light">@_localizer["KindOfCookies"]</h4>
+
+        @{
+            string[] neededCookies =
+            {
+                ".AspNetCore.Identity.Application",
+                "CSRF_TOKEN"
+            };
+            string[] functionalCookies =
+            {
+                "acceptCookiePolicy"
+            };
+        }
+        <!-- Needed cookies -->
+        <div class="container text-start m-4">
+            <p class="mb-n2 text-body-secondary">
+                <h6>@_localizer["NeededCookiesTitle"]</h6>
+                @_localizer["NeededCookies"]
+            </p>
+
+            @* List the cookies *@
+            @foreach (string cookieName in neededCookies)
+            {
+                <div class="m-2 text-start">
+                    <div class="rounded px-1 bg-dark" style="float: left;">
+                        @cookieName
+                    </div>
+                    : @_localizer[cookieName + ".Description"]
+                </div>
+            }
+        </div>
+
+        <!-- Functional cookies -->
+        <div class="container text-start m-4">
+            <p class="text-body-secondary">
+                <h6>@_localizer["FunctionalCookiesTitle"]</h6>
+                @_localizer["FunctionalCookies"]
+            </p>
+
+            @* List the cookies *@
+            @foreach (string cookieName in functionalCookies)
+            {
+                <div class="m-2 text-start">
+                    <div class="rounded px-1 bg-dark" style="float: left;">
+                        @cookieName
+                    </div>
+                    : @_localizer[cookieName + ".Description"]
+                </div>
+            }
+        </div>
+    </div>
+</div>

@@ -47,8 +47,8 @@
 
   <ItemGroup>
     <Folder Include="ApiControllers\" />
-    <Folder Include="wwwroot\js\" />
     <Folder Include="wwwroot\img\" />
+    <Folder Include="wwwroot\js\Shared\" />
   </ItemGroup>
 
   <Target Name="PreBuild" BeforeTargets="PreBuildEvent">

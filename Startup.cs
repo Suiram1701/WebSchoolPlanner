@@ -131,16 +131,32 @@ public class Startup
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders();
 
-        services.ConfigureApplicationCookie(options =>
-        {
-            options.LoginPath = "/Auth/Login";
-            options.LogoutPath = "/Auth/Logout";
+        // Security
+        services
+            .AddAntiforgery(options =>
+            {
+                options.Cookie.Name = "CSRF_TOKEN";
+                options.FormFieldName = "_CSRF-TOKEN";
+                options.HeaderName = "X-CSRF-TOKEN";
+            })
+            .ConfigureApplicationCookie(options =>
+            {
+                options.LoginPath = "/Auth/Login";
+                options.LogoutPath = "/Auth/Logout";
 
-            options.SlidingExpiration = true;
-            options.ReturnUrlParameter = "returnUrl";
-        });
+                options.SlidingExpiration = true;
+                options.ReturnUrlParameter = "returnUrl";
+            });
 
-        services.AddSession();
+        services
+            .AddCookiePolicy(options =>
+            {
+                options.CheckConsentNeeded = context => true;
+                options.ConsentCookie.Name = "acceptCookiePolicy";
+                options.ConsentCookieValue = "true";
+                options.MinimumSameSitePolicy = SameSiteMode.None;
+            })
+            .AddSession();
         services.AddAuthentication();
         services.AddAuthorization();
     }
@@ -156,7 +172,8 @@ public class Startup
         // Default request pipeline
         app
             .UseHttpsRedirection()
-            .UseStaticFiles();
+            .UseStaticFiles()
+            .UseCookiePolicy();
 
         // Routing
         app

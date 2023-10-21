@@ -6,3 +6,11 @@
 .title-header img {
     margin-right: 12px;
 }
+
+.cookie-Consent {
+    max-width: 300px;
+    left: unset;
+    margin-left: 2rem;
+    margin-right: 2rem;
+    margin-bottom: 2rem;
+}

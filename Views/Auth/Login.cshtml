@@ -15,7 +15,7 @@
 <div class="w-100 m-auto form-signin @{if (ViewBag.IsLoginFailed ?? false) {<text>form-invalid</text>}}">
     <h1 class="h3 mb-3 fw-normal">@_localizer["PlsSignIn"]</h1>
 
-    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@ViewBag.ReturnUrl">
+    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@ViewBag.ReturnUrl" asp-antiforgery="true">
 
         <!-- Email input -->
         <div class="form-floating">
@@ -59,8 +59,6 @@
             <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
             <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
         </div>
-
-        @Html.AntiForgeryToken()
 
         <!-- Submit -->
         <button class="w-100 btn btn-lg btn-primary" id="form-submit" type="submit">@_localizer["Login"]</button>

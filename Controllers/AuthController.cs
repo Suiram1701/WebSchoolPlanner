@@ -11,6 +11,9 @@ using Humanizer;
 
 namespace WebSchoolPlanner.Controllers;
 
+/// <summary>
+/// A Controller for authorization logic
+/// </summary>
 [Authorize]
 [Controller]
 [Route(RoutePrefix + "Auth/")]
@@ -28,6 +31,10 @@ public sealed class AuthController : Controller
         _uiCulture = Thread.CurrentThread.CurrentUICulture;
     }
 
+    /// <summary>
+    /// A view for login
+    /// </summary>
+    /// <param name="returnUrl">The url to return after login</param>
     [AllowAnonymous]
     [Route("Login")]
     public IActionResult Login([FromQuery] string? returnUrl)
@@ -36,6 +43,11 @@ public sealed class AuthController : Controller
         return View();
     }
 
+    /// <summary>
+    /// The action to login
+    /// </summary>
+    /// <param name="returnUrl">The url to return after login</param>
+    /// <param name="model">The login data</param>
     [HttpPost]
     [AllowAnonymous]
     [Route("Login")]
@@ -103,7 +115,7 @@ public sealed class AuthController : Controller
     }
 
     [Route("Logout")]
-    public async Task<IActionResult> LogoutAsync()
+    public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
         return RedirectToAction(nameof(Login), new { languageCode = _uiCulture });
