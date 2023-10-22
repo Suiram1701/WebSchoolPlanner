@@ -100,8 +100,8 @@
   <data name="Login" xml:space="preserve">
     <value>Anmelden</value>
   </data>
-  <data name="EmailLabel" xml:space="preserve">
-    <value>E-Mail-Adresse</value>
+  <data name="UsernameLabel" xml:space="preserve">
+    <value>Nutzername</value>
   </data>
   <data name="PasswdLabel" xml:space="preserve">
     <value>Passwort</value>

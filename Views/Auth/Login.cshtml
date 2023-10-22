@@ -12,15 +12,19 @@
     <link rel="stylesheet" type="text/css" href="~/css/Auth/Login.css" />
 }
 
-<div class="w-100 m-auto form-signin @{if (ViewBag.IsLoginFailed ?? false) {<text>form-invalid</text>}}">
+@section Scripts {
+    <script src="~/js/Auth/Login.js"></script>
+}
+
+<div id="form-div" class="w-100 m-auto form-signin @{if (ViewBag.IsLoginFailed ?? false) {<text>form-invalid</text>}}">
     <h1 class="h3 mb-3 fw-normal">@_localizer["PlsSignIn"]</h1>
 
-    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-languageCode="@ViewBag.UICulture" asp-route-returnUrl="@ViewBag.ReturnUrl" asp-antiforgery="true">
+    <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-r="@ViewBag.ReturnUrl" asp-antiforgery="true">
 
-        <!-- Email input -->
+        <!-- username input -->
         <div class="form-floating">
-            <input type="email" class="form-control" id="emailInput" value="@Model?.Email" asp-for="Email" required />
-            <label for="emailInput">@_localizer["EmailLabel"]</label>
+            <input type="text" class="form-control" id="nameInput" value="@Model?.Username" asp-for="Username" required />
+            <label for="nameInput">@_localizer["UsernameLabel"]</label>
         </div>
 
         <!-- Passwd input -->
@@ -32,7 +36,7 @@
         @if (ViewBag.IsLoginFailed ?? false)
         {
             <div class="invalid-feedback d-block">
-                @_localizer["InvalidLoginData"];
+                @_localizer["InvalidLoginData"]
             </div>
         }
         else if (ViewBag.LockOutEnd is DateTimeOffset dateTimeOffset)

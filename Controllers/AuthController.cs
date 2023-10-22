@@ -8,6 +8,7 @@ using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Models;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using Humanizer;
+using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -19,13 +20,15 @@ namespace WebSchoolPlanner.Controllers;
 [Route("Auth/")]
 public sealed class AuthController : Controller
 {
+    private readonly ILogger _logger;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
     private readonly CultureInfo _uiCulture;
 
-    public AuthController(SignInManager<User> signInManager, UserManager<User> userManager)
+    public AuthController(ILogger<AuthController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
     {
+        _logger = logger;
         _signInManager = signInManager;
         _userManager = userManager;
         _uiCulture = Thread.CurrentThread.CurrentUICulture;
@@ -52,14 +55,14 @@ public sealed class AuthController : Controller
     [AllowAnonymous]
     [Route("Login")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login([FromQuery] string? returnUrl, [FromForm] LoginModel? model)
+    public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl, [FromForm] LoginModel? model)
     {
         ViewBag.ReturnUrl = returnUrl;
 
         if (ModelState.IsValid && model is not null)
         {
             // Check if the user exists
-            if (await _userManager.FindByEmailAsync(model.Email) is not User user)
+            if (await _userManager.FindByNameAsync(model.Username) is not User user)
             {
                 ViewBag.IsLoginFailed = true;
                 return View(nameof(Login), model);
@@ -67,11 +70,7 @@ public sealed class AuthController : Controller
 
             SignInResult result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
             if (result.RequiresTwoFactor)     // Redirect to 2FA validation
-                return RedirectToAction(nameof(TFAValidate), new
-                {
-                    languageCode = _uiCulture,
-                    returnUrl
-                });
+                return RedirectToAction(nameof(TFAValidate), new { r = returnUrl });
             else if (result.IsLockedOut)
             {
                 DateTimeOffset? lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
@@ -89,27 +88,30 @@ public sealed class AuthController : Controller
             else if (!result.Succeeded)     // Invalid / passwd
             {
                 await _userManager.AccessFailedAsync(user);
+                if (user.AccessFailedCount >= _userManager.Options.Lockout.MaxFailedAccessAttempts)
+                    _logger.LogInformation("User {0} invalid password lockout", user.Id);
 
                 ViewBag.IsLoginFailed = true;
                 return View(nameof(Login), model);
             }
 
+            // successful
+            _logger.LogInformation("Login from IPv4 {0} to user {1}", HttpContext.Connection.RemoteIpAddress!.MapToIPv4(), user.Id);
             if (returnUrl is not null)
                 return Redirect(returnUrl);
             else
-                return RedirectToAction(     // Redirect to dashboard
-                    actionName: nameof(DashboardController.Index),
-                    controllerName: "Dashboard",
-                    routeValues: new { languageCode = _uiCulture });
+                return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
         }
 
+        // Invalid model state
+        _logger.LogInformation("Invalid model state from IPv4 {0}", HttpContext.Connection.RemoteIpAddress!.MapToIPv4());
         ViewBag.IsInvalidState = true;
         return View(nameof(Login), model);
     }
 
     [AllowAnonymous]
     [Route("2FA")]
-    public IActionResult TFAValidate([FromQuery] string? returnUrl)
+    public IActionResult TFAValidate([FromQuery(Name = "r")] string? returnUrl)
     {
         throw new NotImplementedException();
     }
@@ -118,6 +120,6 @@ public sealed class AuthController : Controller
     public async Task<IActionResult> Logout()
     {
         await _signInManager.SignOutAsync();
-        return RedirectToAction(nameof(Login), new { languageCode = _uiCulture });
+        return RedirectToAction("Login");
     }
 }

@@ -11,7 +11,7 @@
 @if (showBanner)
 {
     <div id="cookieConsent" class="alert alert-info alert-dismissible fade show fixed-bottom cookie-Consent" role="alert">
-        @_localizer["CookieConsentBanner"] <a asp-controller="Privacy" asp-action="CookiePolicy" asp-route-languageCode="@ViewBag.UICulture">@_localizer["CookieConsent"]</a>.
+        @_localizer["CookieConsentBanner"] <a asp-controller="Privacy" asp-action="CookiePolicy">@_localizer["CookieConsent"]</a>.
         <button type="button" class="accept-policy close" data-bs-dismiss="alert" aria-label="Close" data-cookie-string="@cookieString">
             <span aria-hidden="true">@_localizer["Accept"]</span>
         </button>

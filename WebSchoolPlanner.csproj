@@ -47,6 +47,7 @@
 
   <ItemGroup>
     <Folder Include="ApiControllers\" />
+    <Folder Include="wwwroot\js\Auth\" />
     <Folder Include="wwwroot\js\Shared\" />
   </ItemGroup>
 

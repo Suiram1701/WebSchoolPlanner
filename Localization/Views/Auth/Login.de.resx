@@ -100,7 +100,7 @@
   <data name="Login" xml:space="preserve">
     <value></value>
   </data>
-  <data name="EmailLabel" xml:space="preserve">
+  <data name="UsernameLabel" xml:space="preserve">
     <value></value>
   </data>
   <data name="PasswdLabel" xml:space="preserve">

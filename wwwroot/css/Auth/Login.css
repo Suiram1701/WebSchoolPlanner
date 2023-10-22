@@ -4,25 +4,25 @@
     margin-top: 25%;
 }
 
-.form-signin input[type="email"] {
+.form-signin input[id="nameInput"] {
     border-bottom-left-radius: 0px;
     border-bottom-right-radius: 0px;
     margin-bottom: -1px;
 }
 
-.form-invalid input[type="email"] {
+.form-invalid input[id="nameInput"] {
     border-left-color: var(--bs-form-invalid-color);
     border-top-color: var(--bs-form-invalid-color);
     border-right-color: var(--bs-form-invalid-color);
 }
 
-.form-signin input[type="password"] {
+.form-signin input[id="passwdInput"] {
     border-top-left-radius: 0px;
     border-top-right-radius: 0px;
     margin-top: -1px;
 }
 
-.form-invalid input[type="password"] {
+.form-invalid input[id="passwdInput"] {
     border-left-color: var(--bs-form-invalid-color);
     border-bottom-color: var(--bs-form-invalid-color);
     border-right-color: var(--bs-form-invalid-color);
