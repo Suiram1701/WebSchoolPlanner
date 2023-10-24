@@ -145,4 +145,7 @@
   <data name="CookieChange" xml:space="preserve">
     <value></value>
   </data>
+  <data name=".AspNetCore.Theme.Description" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

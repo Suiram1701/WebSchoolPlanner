@@ -9,6 +9,7 @@ using WebSchoolPlanner.Models;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using Humanizer;
 using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
+using System.Net;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -57,6 +58,7 @@ public sealed class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl, [FromForm] LoginModel? model)
     {
+        IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
         ViewBag.ReturnUrl = returnUrl;
 
         if (ModelState.IsValid && model is not null)
@@ -87,8 +89,9 @@ public sealed class AuthController : Controller
             }
             else if (!result.Succeeded)     // Invalid / passwd
             {
+                _logger.LogInformation("User {0} invalid password from IPv4 {1}");
                 await _userManager.AccessFailedAsync(user);
-                if (user.AccessFailedCount >= _userManager.Options.Lockout.MaxFailedAccessAttempts)
+                if (user.AccessFailedCount >= _userManager.Options.Lockout.MaxFailedAccessAttempts)     // Log if the user locked out
                     _logger.LogInformation("User {0} invalid password lockout", user.Id);
 
                 ViewBag.IsLoginFailed = true;
@@ -96,7 +99,7 @@ public sealed class AuthController : Controller
             }
 
             // successful
-            _logger.LogInformation("Login from IPv4 {0} to user {1}", HttpContext.Connection.RemoteIpAddress!.MapToIPv4(), user.Id);
+            _logger.LogInformation("Login from IPv4 {0} to user {1}", clientIP, user.Id);
             if (returnUrl is not null)
                 return Redirect(returnUrl);
             else
@@ -104,7 +107,7 @@ public sealed class AuthController : Controller
         }
 
         // Invalid model state
-        _logger.LogInformation("Invalid model state from IPv4 {0}", HttpContext.Connection.RemoteIpAddress!.MapToIPv4());
+        _logger.LogInformation("Invalid model state from IPv4 {0}", clientIP);
         ViewBag.IsInvalidState = true;
         return View(nameof(Login), model);
     }
@@ -119,6 +122,7 @@ public sealed class AuthController : Controller
     [Route("Logout")]
     public async Task<IActionResult> Logout()
     {
+        _logger.LogInformation("User {0} logout", _userManager.GetUserId(User));
         await _signInManager.SignOutAsync();
         return RedirectToAction("Login");
     }

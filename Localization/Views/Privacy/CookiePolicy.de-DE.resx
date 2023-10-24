@@ -145,4 +145,7 @@
   <data name="CookieChange" xml:space="preserve">
     <value>Wir behalten uns das Recht vor, unsere Cookie-Richtlinie zu aktualisieren. Überprüfen Sie regelmäßig diese Seite auf Aktualisierungen.</value>
   </data>
+  <data name=".AspNetCore.Theme.Description" xml:space="preserve">
+    <value>Dieser Cookie speichert das von Ihnen bevorzugte Farbthema.</value>
+  </data>
 </root>

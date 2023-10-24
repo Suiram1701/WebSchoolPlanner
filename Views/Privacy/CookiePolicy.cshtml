@@ -25,7 +25,8 @@
             string[] functionalCookies =
             {
                 ".AspNetCore.acceptCookiePolicy",
-                ".AspNetCore.Culture"
+                ".AspNetCore.Culture",
+                ".AspNetCore.Theme"
             };
         }
         <!-- Needed cookies -->
@@ -39,7 +40,7 @@
             @foreach (string cookieName in neededCookies)
             {
                 <div class="m-2 text-start">
-                    <div class="rounded px-1 bg-dark" style="float: left;">
+                    <div class="rounded px-1 bg-dark text-white" style="float: left;">
                         @cookieName
                     </div>
                     : @_localizer[cookieName + ".Description"]
@@ -58,7 +59,7 @@
             @foreach (string cookieName in functionalCookies)
             {
                 <div class="m-2 text-start">
-                    <div class="rounded px-1 bg-dark" style="float: left;">
+                    <div class="rounded px-1 bg-dark text-white" style="float: left;">
                         @cookieName
                     </div>
                     : @_localizer[cookieName + ".Description"]

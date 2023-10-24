@@ -100,4 +100,13 @@
   <data name="Signin" xml:space="preserve">
     <value></value>
   </data>
+  <data name="ColorMode_Dark" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="ColorMode_White" xml:space="preserve">
+    <value></value>
+  </data>
+  <data name="ColorMode_Auto" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

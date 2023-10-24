@@ -1,4 +1,6 @@
-﻿namespace WebSchoolPlanner;
+﻿using WebSchoolPlanner.Extensions;
+
+namespace WebSchoolPlanner;
 
 public static class Enums
 {
@@ -7,7 +9,19 @@ public static class Enums
     /// </summary>
     public enum Theme
     {
+        /// <summary>
+        /// The theme is choosen by the browser
+        /// </summary>
+        Auto,
+
+        /// <summary>
+        /// Light mode
+        /// </summary>
         White,
+
+        /// <summary>
+        /// Dark mode
+        /// </summary>
         Dark
     }
 }
