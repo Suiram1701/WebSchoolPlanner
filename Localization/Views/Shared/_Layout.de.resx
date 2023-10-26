@@ -124,4 +124,7 @@
   <data name="Settings" xml:space="preserve">
     <value></value>
   </data>
+  <data name="CookiePolicy" xml:space="preserve">
+    <value></value>
+  </data>
 </root>

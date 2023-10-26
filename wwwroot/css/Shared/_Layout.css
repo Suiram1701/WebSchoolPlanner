@@ -1,4 +1,12 @@
-﻿.title-header {
+﻿body {
+    min-height: 100vh;
+}
+
+body .main-div {
+    min-height: 92vh;
+}
+
+.title-header {
     flex-direction: row;
     align-items: flex-end;
 }
