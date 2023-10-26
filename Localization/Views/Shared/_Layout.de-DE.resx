@@ -109,4 +109,19 @@
   <data name="ColorMode_Auto" xml:space="preserve">
     <value>Automatisch</value>
   </data>
+  <data name="AppDescription" xml:space="preserve">
+    <value>Ein Schulplaner für die Kommunikation und Interaktion zwischen Schülern und Lehrern.</value>
+  </data>
+  <data name="Dashboard" xml:space="preserve">
+    <value>Übersicht</value>
+  </data>
+  <data name="SignOut" xml:space="preserve">
+    <value>Abmelden</value>
+  </data>
+  <data name="Account" xml:space="preserve">
+    <value>Konto</value>
+  </data>
+  <data name="Settings" xml:space="preserve">
+    <value>Einstellungen</value>
+  </data>
 </root>

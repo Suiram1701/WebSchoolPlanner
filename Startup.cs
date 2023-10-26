@@ -92,7 +92,7 @@ public class Startup
                 options.SubstituteApiVersionInUrl = true;
             });
 
-        if (_configuration["Swagger:Use"] == true.ToString())
+        if (_configuration[SwaggerConfigurationPrefix + "Use"] == true.ToString())
             services.AddSwagger();
 
         // Database / authentication
@@ -170,10 +170,10 @@ public class Startup
 
         // Api / Swagger
         app.UseApiVersioning();
-        if (_configuration["Swagger:Use"] == true.ToString())
+        if (_configuration[SwaggerConfigurationPrefix + "Use"] == true.ToString())  
             app.UseSwagger();
 
-        if (_configuration["Swagger:UseUI"] == true.ToString())
+        if (_configuration[SwaggerConfigurationPrefix + "UseUI"] == true.ToString())
         {
             app.UseSwaggerUI(options =>
             {

@@ -4,6 +4,10 @@
     ViewData["Title"] = _localizer["Title"];
 }
 
+@section Stylesheets {
+    <link rel="stylesheet" type="text/css" href="~/css/Privacy/CookiePolicy.css" />
+}
+
 <div class="py-lg-5 text-center">
     <div class="col-md-8 mx-auto">
 
@@ -40,7 +44,7 @@
             @foreach (string cookieName in neededCookies)
             {
                 <div class="m-2 text-start">
-                    <div class="rounded px-1 bg-dark text-white" style="float: left;">
+                    <div class="cookie-name rounded px-1 bg-body text-white">
                         @cookieName
                     </div>
                     : @_localizer[cookieName + ".Description"]
@@ -59,7 +63,7 @@
             @foreach (string cookieName in functionalCookies)
             {
                 <div class="m-2 text-start">
-                    <div class="rounded px-1 bg-dark text-white" style="float: left;">
+                    <div class="cookie-name rounded px-1 bg-dark text-white">
                         @cookieName
                     </div>
                     : @_localizer[cookieName + ".Description"]
