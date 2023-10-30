@@ -12,6 +12,7 @@ using WebSchoolPlanner.Db.Models;
 using Microsoft.AspNetCore.Identity;
 using WebSchoolPlanner.Db;
 using Microsoft.EntityFrameworkCore;
+using Swashbuckle.AspNetCore.SwaggerUI;
 
 namespace WebSchoolPlanner;
 
@@ -141,6 +142,7 @@ public class Startup
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             })
             .AddSession();
+
         services.AddAuthentication();
         services.AddAuthorization();
     }
@@ -153,30 +155,25 @@ public class Startup
         else
             app.UseHsts();
 
+        app.UseApiExceptionHandler();
+
         // Default request pipeline
         app
             .UseHttpsRedirection()
             .UseStaticFiles()
             .UseCookiePolicy();
 
-        // Routing
-        app
-            .UseRouting()
-            .UseSession()
-            .UseAuthentication()
-            .UseAuthorization()
-            .UseLocalization("/api", "/swagger")
-            .UseEndpoints(endpoints => endpoints.MapControllers());
-
         // Api / Swagger
         app.UseApiVersioning();
-        if (_configuration[SwaggerConfigurationPrefix + "Use"] == true.ToString())  
+        if (_configuration[SwaggerConfigurationPrefix + "Use"] == true.ToString())
             app.UseSwagger();
 
         if (_configuration[SwaggerConfigurationPrefix + "UseUI"] == true.ToString())
         {
             app.UseSwaggerUI(options =>
             {
+                options.SupportedSubmitMethods(SubmitMethod.Get);     // Enable the 'Try it out' feature only for GET requests
+
                 // Register all api versions
                 IApiVersionDescriptionProvider provider = app.ApplicationServices.GetService<IApiVersionDescriptionProvider>()!;
                 foreach (ApiVersionDescription description in provider.ApiVersionDescriptions)
@@ -187,5 +184,14 @@ public class Startup
                 }
             });
         }
+
+        // Routing
+        app
+            .UseRouting()
+            .UseSession()
+            .UseAuthentication()
+            .UseAuthorization()
+            .UseRequestLocalization()
+            .UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }

@@ -18,6 +18,14 @@ public class SwaggerConfigureOptions : IConfigureOptions<SwaggerGenOptions>
 
     void IConfigureOptions<SwaggerGenOptions>.Configure(SwaggerGenOptions options)
     {
+        // Add auth
+        options.AddSecurityDefinition("Session Id", new()
+        {
+            Description = "The id of the authenticated session.",
+            In = ParameterLocation.Cookie,
+            Name = ".AspNetCore.Identity.Application"
+        });
+
         foreach (ApiVersionDescription description in _provider.ApiVersionDescriptions)
         {
             OpenApiInfo apiInfo = new()

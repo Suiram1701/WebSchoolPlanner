@@ -65,7 +65,7 @@
         @RenderSection("HeadScripts", false)
         <script src="~/js/Shared/_layout.js" async></script>
     </head>
-    <body class="d-flex flex-column bg-body-tertiary">
+    <body class="d-flex @{if (!(User.Identity?.IsAuthenticated ?? false)) {<text>flex-column</text>}} bg-body-tertiary">
         @{
             bool IsItemSelected(string controller, string action)
             {
@@ -98,17 +98,17 @@
 
             <div class="dropdown">
                 <a class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="~/img/account.svg" class="rounded-circle me-2" height="32" width="32" />
+                    <img src="~/img/account.svg" class="rounded-circle me-2" height="36" width="36" />
                     <strong>@User.Identity.Name</strong>
                 </a>
                 <ul class="dropdown-menu text-small shadow">
                     <li>
-                        <a class="dropdown-item">
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Index">
                             @_localizer["Account"]
                         </a>
                     </li>
                     <li>
-                        <a class="dropdown-item">
+                        <a class="dropdown-item" asp-controller="Account" asp-action="Settings">
                             @_localizer["Settings"]
                         </a>
                     </li>

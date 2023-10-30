@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace WebSchoolPlanner.Db.Models;
 
@@ -7,6 +9,12 @@ namespace WebSchoolPlanner.Db.Models;
 /// </summary>
 public class User : IdentityUser
 {
+    /// <summary>
+    /// The profile imager
+    /// </summary>
+    [MaxLength((int)MaxAccountImageSize)]
+    public byte[]? AccountImage { get; set; }
+
     /// <summary>
     /// A new instance
     /// </summary>
