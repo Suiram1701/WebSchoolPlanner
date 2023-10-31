@@ -1,4 +1,4 @@
-﻿namespace WebSchoolPlanner.Models;
+﻿namespace WebSchoolPlanner.ApiModels;
 
 /// <summary>
 /// Detailed information to crop an image to a rect

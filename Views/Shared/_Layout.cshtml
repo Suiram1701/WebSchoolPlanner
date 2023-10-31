@@ -1,10 +1,16 @@
-﻿@using Microsoft.Extensions.Options;
+﻿@using Microsoft.AspNetCore.Identity;
+@using Microsoft.Extensions.Options;
+@using WebSchoolPlanner.Db.Models;
 
 @inject IViewLocalizer _localizer;
+@inject UserManager<User> _userManager;
 @inject IConfiguration _configuration;
 @inject IOptions<RequestLocalizationOptions> _localizationOptions;
 
 @{
+    // User
+    User? user = await _userManager.GetUserAsync(User);
+
     // color theme
     string? themeCookieValue = Context.Request.Cookies[".AspNetCore.Theme"];
     switch (themeCookieValue)
@@ -78,6 +84,7 @@
         {
         <!-- Sidebar -->
         <aside class="sticky-top p-3 bg-body-secondary d-flex flex-column vh-100 sidebar">
+
             <!-- title link -->
             <a class="d-flex align-items-center mb-3 mb-md-0 me-md-auto link-body-emphasis text-decoration-none title-header">
                 <img class="d-inline-block align-text-top" src="~/img/school.svg" height="43" width="43" />
@@ -98,7 +105,12 @@
 
             <div class="dropdown">
                 <a class="d-flex align-items-center link-body-emphasis text-decoration-none dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                    <img src="~/img/account.svg" class="rounded-circle me-2" height="36" width="36" />
+                    @{
+                        string accountImageSource = "/img/account.svg";
+                        if (user!.AccountImage is not null)
+                            accountImageSource = "/api/v1/Account/Image";
+                    }
+                    <img src="@accountImageSource" class="rounded-circle me-2" height="36" width="36" />
                     <strong>@User.Identity.Name</strong>
                 </a>
                 <ul class="dropdown-menu text-small shadow">

@@ -6,9 +6,9 @@ using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Text;
+using WebSchoolPlanner.ApiModels;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
-using WebSchoolPlanner.Models;
 
 namespace WebSchoolPlanner.ApiControllers.V1;
 
@@ -38,7 +38,7 @@ public sealed class AccountController : ControllerBase
     /// </summary>
     /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp. OPTIONAL 'image/png' by default</param>
     /// <returns>The image of the account</returns>
-    /// <response code="204">No image was set for the profile.</response>
+    /// <response code="204">No content: No image was set for the profile.</response>
     [HttpGet]
     [Route("Image")]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
@@ -56,7 +56,7 @@ public sealed class AccountController : ControllerBase
     /// <param name="accountId">The id of the account.</param>
     /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp. OPTIONAL 'image/png' by default</param>
     /// <returns>The image of the account with the given id.</returns>
-    /// <response code="204">No image was set for the profile.</response>
+    /// <response code="204">No content: No image was set for the profile.</response>
     [HttpGet]
     [Route("Image/{accountId}")]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
@@ -94,7 +94,9 @@ public sealed class AccountController : ControllerBase
         string choosenTyp = string.Empty;
         IEnumerable<string> acceptHeaders = HttpContext.Request.GetTypedHeaders().Accept
             .OrderByDescending(h => h, MediaTypeHeaderValueComparer.QualityComparer)
-            .Select(mh => mh.MediaType == "*/*" ? ImageType : mh.MediaType.ToString());
+            .Select(mh => mh.MediaType.ToString())
+            .Select(mh => mh == "*/*" ? ImageType : mh)     // Use image/png when it doens't matter
+            .Select(mh => mh == "image/*" ? ImageType : mh);
         foreach (string mediaType in acceptHeaders)
         {
             switch (mediaType)
@@ -158,7 +160,7 @@ public sealed class AccountController : ControllerBase
     /// Set the given image to the current account as profile image.
     /// </summary>
     /// <param name="imageForm">The image to set</param>
-    /// <param name="cropData">The data to crop the image</param>
+    /// <param name="cropData">The data to crop the image. OPTIONAL</param>
     /// <remarks>
     /// A rectangular image is required for the profile picture. When uploading, you can crop the image using the crop part of the form. If this part isn't given, the largest possible image is taken.
     /// 

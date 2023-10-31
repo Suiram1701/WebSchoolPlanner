@@ -30,6 +30,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
         {
             operation.Responses.Add(StatusCodes.Status400BadRequest.ToString(), new()
             {
+                Description = "Bad request: Invalid data was sent in the request.",
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
@@ -48,6 +49,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
         {
             operation.Responses.Add(StatusCodes.Status401Unauthorized.ToString(), new()
             {
+                Description = "Unauthorized: This endpoint requires an authentication.",
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
@@ -67,6 +69,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
             {
                 operation.Responses.Add(StatusCodes.Status406NotAcceptable.ToString(), new()
                 {
+                    Description = "Not acceptable: The content of the 'Accept', 'Accept-Language' or 'Accept-Range' header is invalid.",
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
                         {
@@ -82,6 +85,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
         {
             operation.Responses.Add(StatusCodes.Status415UnsupportedMediaType.ToString(), new()
             {
+                Description = "Unsupported media type: The media type of the request isn't supported by the endpoint.",
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
@@ -94,6 +98,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
 
         operation.Responses.Add(StatusCodes.Status500InternalServerError.ToString(), new()
         {
+            Description = "Internal server error: An internal error happend while the request.",
             Content = new Dictionary<string, OpenApiMediaType>
             {
                 {
