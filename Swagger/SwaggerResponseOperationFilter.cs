@@ -122,7 +122,8 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                     "type": "Details of the problem",
                     "title": "Title of the problem",
                     "status": 400,
-                    "traceId": ""
+                    "traceId": "",
+                    "errors": { }
                 }
                 """)
         });

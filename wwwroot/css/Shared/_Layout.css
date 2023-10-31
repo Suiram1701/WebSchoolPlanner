@@ -1,9 +1,5 @@
-﻿body {
-    min-height: 100vh;
-}
-
-body .main-div {
-    min-height: 92vh;
+﻿main {
+    width: 100%;
 }
 
 .title-header {

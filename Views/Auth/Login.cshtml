@@ -23,13 +23,13 @@
 
         <!-- username input -->
         <div class="form-floating">
-            <input type="text" class="form-control" id="nameInput" value="@Model?.Username" asp-for="Username" autocomplete="on" required />
+            <input type="text" class="form-control" id="nameInput" value="@Model?.Username" asp-for="Username" placeholder="ExamplePerson" autocomplete="on" required />
             <label for="nameInput">@_localizer["UsernameLabel"]</label>
         </div>
 
         <!-- Passwd input -->
         <div class="form-floating">  
-            <input type="password" class="form-control" id="passwdInput" asp-for="Password" autocomplete="on" required />
+            <input type="password" class="form-control" id="passwdInput" asp-for="Password" placeholder="Password123" autocomplete="on" required />
             <label for="passwdInput">@_localizer["PasswdLabel"]</label>
         </div>
 

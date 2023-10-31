@@ -3,3 +3,34 @@
 @{
     ViewData["Title"] = _localizer["Title"];
 }
+
+<div>
+    <ul class="nav nav-tabs" id="myTab" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="presentation-tab" data-bs-toggle="tab" data-bs-target="#presentation-tab-pane" type="button" role="tab" aria-controls="presentation-tab-pane" aria-selected="true">
+                @_localizer["Presentation"]
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="security-tab" data-bs-toggle="tab" data-bs-target="#security-tab-pane" type="button" role="tab" aria-controls="security-tab-pane" aria-selected="true">
+                @_localizer["Security"]
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="api-tab" data-bs-toggle="tab" data-bs-target="#api-tab-pane" type="button" role="tab" aria-controls="api-tab-pane" aria-selected="true">
+                @_localizer["API_Keys"]
+            </button>
+        </li>
+    </ul>
+    <div class="tab-content" id="presentation">
+        <div class="tab-pane fade show active" id="presentation-tab-pane" role="tabpanel" aria-labelledby="presentation-tab" tabindex="0">
+            Presentation
+        </div>
+        <div class="tab-pane fade" id="security-tab-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="1">
+            Security
+        </div>
+        <div class="tab-pane fade" id="api-tab-pane" role="tabpanel" aria-labelledby="api-tab" tabindex="2">
+            API
+        </div>
+    </div>
+</div>

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Newtonsoft.Json;
-using Newtonsoft.Json.Linq;
+using Newtonsoft;
 using System.Text;
 using WebSchoolPlanner.ApiModels;
 using WebSchoolPlanner.Db.Models;
@@ -261,9 +261,16 @@ public sealed class AccountController : ControllerBase
         await image.SaveAsPngAsync(stream);
 
         User user = (await _userManager.GetUserAsync(User))!;
-        await _userManager.SetProfileImageAsync(user, stream.ToArray());
-
         string currentUserId = _userManager.GetUserId(User)!;
+        IdentityResult result = await _userManager.SetProfileImageAsync(user, stream.ToArray());
+
+        if (!result.Succeeded)
+        {
+            string errorJson = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An occured error happened while setting account image of user {0}; Error: {1}", currentUserId, errorJson);
+            throw new Exception("An occured error happened while setting account image");
+        }
+
         _logger.LogInformation("User {1} updated account image", currentUserId);
         return Ok();
     }

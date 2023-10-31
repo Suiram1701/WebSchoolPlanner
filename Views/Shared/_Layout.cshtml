@@ -71,7 +71,7 @@
         @RenderSection("HeadScripts", false)
         <script src="~/js/Shared/_layout.js" async></script>
     </head>
-    <body class="d-flex @{if (!(User.Identity?.IsAuthenticated ?? false)) {<text>flex-column</text>}} bg-body-tertiary">
+    <body class="vh-100 d-flex @{if (!(User.Identity?.IsAuthenticated ?? false)) {<text>flex-column</text>}} bg-body-tertiary">
         @{
             bool IsItemSelected(string controller, string action)
             {
@@ -224,8 +224,8 @@
         </nav>
         }
 
-        <div class="d-flex flex-column main-div">
-            <main role="main" class="flex-grow-1 w-100 m-auto p-3 align-items-center">
+        <div class="flex-grow-1 d-flex flex-column main-div">
+            <main role="main" class="flex-grow-1 m-auto p-3 align-items-center">
                 @RenderBody()
             </main>
 
@@ -263,7 +263,7 @@
                 </ul>
             </footer>
         </div>
-        
+
         <partial name="_CookieConsentPartial" />
         @RenderSection("Scripts", false)
     </body>

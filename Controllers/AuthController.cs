@@ -41,7 +41,7 @@ public sealed class AuthController : Controller
     /// <param name="returnUrl">The url to return after login</param>
     [AllowAnonymous]
     [Route("Login")]
-    public IActionResult Login([FromQuery] string? returnUrl)
+    public IActionResult Login([FromQuery(Name = "r")] string? returnUrl)
     {
         ViewBag.ReturnUrl = returnUrl;
         return View();
@@ -56,7 +56,7 @@ public sealed class AuthController : Controller
     [AllowAnonymous]
     [Route("Login")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl, [FromForm] LoginModel? model)
+    public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl, [FromForm] LoginModel model)
     {
         IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
         ViewBag.ReturnUrl = returnUrl;

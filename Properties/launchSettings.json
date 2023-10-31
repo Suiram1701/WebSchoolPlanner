@@ -12,7 +12,7 @@
     "https": {
       "commandName": "Project",
       "launchBrowser": true,
-      "launchUrl": "swagger/index.html",
+      "launchUrl": "Account/Settings",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"
       },

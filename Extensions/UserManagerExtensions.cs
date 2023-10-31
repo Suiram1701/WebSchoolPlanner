@@ -11,14 +11,14 @@ public static class UserManagerExtensions
     /// <param name="userManager"></param>
     /// <param name="user">The user</param>
     /// <param name="content">The content to set</param>
-    /// <returns>The task</returns>
+    /// <returns>The result of the update</returns>
     /// <exception cref="ArgumentException">The file is too large</exception>
-    public static async Task SetProfileImageAsync(this UserManager<User> userManager, User user, byte[]? content)
+    public static async Task<IdentityResult> SetProfileImageAsync(this UserManager<User> userManager, User user, byte[]? content)
     {
         if (content?.Length > MaxAccountImageSize)
             throw new ArgumentException($"The file must be smaller than or same than {MaxAccountImageSize} bytes.");
 
         user.AccountImage = content;
-        await userManager.UpdateAsync(user);
+        return await userManager.UpdateAsync(user);
     }
 }
