@@ -39,6 +39,9 @@ public static class IApplicationBuilderExtensions
             case nameof(FormatException):
                 responseCode = StatusCodes.Status400BadRequest;
                 break;
+            case nameof(NotImplementedException):
+                responseCode = StatusCodes.Status501NotImplemented;
+                break;
             default:
                 responseCode = StatusCodes.Status500InternalServerError;
                 break;

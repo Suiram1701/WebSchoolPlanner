@@ -2,6 +2,12 @@
     width: 100%;
 }
 
+.main-div {
+    --sidebar-widht: 290px;
+    left: var(--sidebar-widht);
+    position: absolute;
+}
+
 .title-header {
     flex-direction: row;
     align-items: flex-end;
@@ -20,5 +26,5 @@
 }
 
 .sidebar {
-    width: 290px;
+    width: var(--sidebar-widht);
 }

@@ -18,7 +18,7 @@ namespace WebSchoolPlanner.Controllers;
 /// </summary>
 [Authorize]
 [Controller]
-[Route("Auth/")]
+[Route("auth/")]
 public sealed class AuthController : Controller
 {
     private readonly ILogger _logger;
@@ -40,7 +40,7 @@ public sealed class AuthController : Controller
     /// </summary>
     /// <param name="returnUrl">The url to return after login</param>
     [AllowAnonymous]
-    [Route("Login")]
+    [Route("login")]
     public IActionResult Login([FromQuery(Name = "r")] string? returnUrl)
     {
         ViewBag.ReturnUrl = returnUrl;
@@ -54,7 +54,7 @@ public sealed class AuthController : Controller
     /// <param name="model">The login data</param>
     [HttpPost]
     [AllowAnonymous]
-    [Route("Login")]
+    [Route("login")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl, [FromForm] LoginModel model)
     {
@@ -113,13 +113,13 @@ public sealed class AuthController : Controller
     }
 
     [AllowAnonymous]
-    [Route("2FA")]
+    [Route("2fa")]
     public IActionResult TFAValidate([FromQuery(Name = "r")] string? returnUrl)
     {
         throw new NotImplementedException();
     }
 
-    [Route("Logout")]
+    [Route("logout")]
     public async Task<IActionResult> Logout()
     {
         _logger.LogInformation("User {0} logout", _userManager.GetUserId(User));

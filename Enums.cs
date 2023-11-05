@@ -10,7 +10,7 @@ public static class Enums
     public enum Theme
     {
         /// <summary>
-        /// The theme is choosen by the browser
+        /// The theme is chosen by the browser
         /// </summary>
         Auto,
 

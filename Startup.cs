@@ -172,7 +172,7 @@ public class Startup
         {
             app.UseSwaggerUI(options =>
             {
-                options.SupportedSubmitMethods(SubmitMethod.Get);     // Enable the 'Try it out' feature only for GET requests
+                options.SupportedSubmitMethods();     // Enable the 'Try it out' feature only for GET requests
 
                 // Register all api versions
                 IApiVersionDescriptionProvider provider = app.ApplicationServices.GetService<IApiVersionDescriptionProvider>()!;

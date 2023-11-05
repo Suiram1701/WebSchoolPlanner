@@ -9,13 +9,17 @@ using System.Text;
 using WebSchoolPlanner.ApiModels;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
+using System.Security.Claims;
+using Microsoft.Extensions.Options;
+using Microsoft.AspNetCore.Http.HttpResults;
 
 namespace WebSchoolPlanner.ApiControllers.V1;
 
 /// <summary>
 /// Generally settings and actions for accounts.
 /// </summary>
-[Route(ApiRoutePrefix + "Account/")]
+[Route(ApiRoutePrefix + "account/")]
 [Authorize]
 [ApiVersion("1")]
 [ApiController]
@@ -34,13 +38,201 @@ public sealed class AccountController : ControllerBase
     }
 
     /// <summary>
+    /// Returns the requested settings.
+    /// </summary>
+    /// <remarks>
+    /// Possible setting names are: "culture" Represents the selected language. Possible values are all by the server supported cultures in the ISO-3166 format; 
+    /// "theme": Represents the selected color theme. Possible values are "White", "Dark" or "Auto".
+    /// 
+    /// Sample request:
+    /// 
+    ///     POST /api/v1/account/settings
+    ///     [
+    ///         "culture"
+    ///     ]
+    /// </remarks>
+    /// <param name="settingNames">The setting names to return.</param>
+    /// <returns>The names of the settings as key and value as value.</returns>
+    [HttpPost]
+    [Route("settings")]
+    [Consumes(typeof(string[]), "application/json")]
+    [Produces("application/json", Type = typeof(Dictionary<string, string>))]
+    [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Dictionary<string, string>))]
+    public async Task<IActionResult> PostSettings([FromBody] string[] settingNames)
+    {
+        User user = (await _userManager.GetUserAsync(User))!;
+        IList<Claim> userClaims = await _userManager.GetClaimsAsync(user);
+
+        // Read the setting values
+        List<string> notFoundSettings = new();
+        Dictionary<string, string> settingValues = new();
+        foreach (string settingName in settingNames)
+        {
+            if (settingValues.ContainsKey(settingName))
+                continue;
+
+            string settingValue;
+            switch (settingName)
+            {
+                case "culture":
+                    settingValue = userClaims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "culture")?.Value ?? "en";
+                    break;
+                case "theme":
+                    settingValue = userClaims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "theme")?.Value ?? Theme.Auto.ToString();
+                    break;
+                default:
+                    notFoundSettings.Add(settingName);
+                    continue;
+            }
+
+            settingValues.Add(settingName, settingValue);
+        }
+
+        // Return a error if any of the requested settings don't exist
+        if (notFoundSettings.Any())
+        {
+            string notFoundSettingsString = string.Join(", ", notFoundSettings);
+            throw new ArgumentException(string.Format("The settings {0} aren't found.", notFoundSettingsString), nameof(settingNames));
+        }
+
+        using StringWriter sw = new();
+        using JsonWriter writer = new JsonTextWriter(sw);
+
+        writer.WriteStartObject();
+        foreach ((string key, string value) in settingValues)
+        {
+            writer.WritePropertyName(key);
+            writer.WriteValue(value);
+        }
+
+        writer.WriteEndObject();
+
+        return Ok(sw.ToString());
+    }
+
+    /// <summary>
+    /// Set for the given settings the given value.
+    /// </summary>
+    /// <remarks>
+    /// Possible setting names are: "culture": Represents the selected language. Possible values are all by the server supported cultures in the ISO-3166 format; 
+    /// "theme": Represents the selected color theme. Possible values are "White", "Dark" or "Auto".
+    /// 
+    /// Sample request:
+    /// 
+    ///     PUT /api/v1/account/settings
+    ///     {
+    ///         "culture": "de-DE",
+    ///     }
+    /// </remarks>
+    /// <param name="localizationOptions"></param>
+    /// <param name="settings">The settings to set.</param>
+    [HttpPut]
+    [Route("settings")]
+    [Consumes(typeof(Dictionary<string, string>), "application/json")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    public async Task<IActionResult> PutSettings([FromBody] Dictionary<string, string> settings, [FromServices] IOptions<RequestLocalizationOptions> localizationOptions)
+    {
+        // Validate settings
+        List<string> notFoundSettings = new();
+        List<string> invalidSettings = new();
+        foreach ((string key, string value) in settings)
+        {
+            switch (key)
+            {
+                case "culture":
+                    IEnumerable<string> supportedUICultureString = localizationOptions.Value.SupportedUICultures!
+                        .Select(c => c.Name);
+
+                    if (!supportedUICultureString.Contains(value))
+                        invalidSettings.Add(key);
+                    break;
+                case "theme":
+                    if (!Enum.TryParse<Theme>(value, out _))
+                        invalidSettings.Add(key);
+                    break;
+                default:
+                    notFoundSettings.Add(key);
+                    continue;
+            }
+        }
+
+        // Return an error if any of the setting wasn't found
+        if (notFoundSettings.Any())
+        {
+            string notFoundSettingsString = string.Join(", ", notFoundSettings);
+            throw new ArgumentException(string.Format("The settings {0} aren't found.", notFoundSettingsString), nameof(settings));
+        }
+
+        // Return an error if any of the settings contains a invalid value
+        if (invalidSettings.Any())
+        {
+            string invalidSettingsString = string.Join(", ", invalidSettings);
+            throw new ArgumentException(string.Format("Invalid value for {0} was given.", invalidSettingsString), nameof(settings));
+        }
+
+        User user = (await _userManager.GetUserAsync(User))!;
+        IList<Claim> userClaims = await _userManager.GetClaimsAsync(user);
+
+        List<Task<IdentityResult>> claimTasks = new();
+
+        // Add all settings that don't exist
+        IEnumerable<KeyValuePair<string, string>> settingsToAdd = settings
+            .Select(s => new KeyValuePair<string, string>(ConfigClaimPrefix + s.Key, s.Value))
+            .Where(s => !userClaims.Any(c => c.Type == s.Key));
+        if (settingsToAdd.Any())
+        {
+            Task<IdentityResult> task = _userManager.AddClaimsAsync(user, settingsToAdd.Select(s => new Claim(s.Key, s.Value))).ContinueWith<IdentityResult>(task =>
+            {
+                // Error handling
+                IdentityResult result = task.Result;
+                if (!result.Succeeded)
+                {
+                    string errorJson = JsonConvert.SerializeObject(result.Errors);
+                    _logger.LogError("An identity error happened while setting account settings of user: {0}; error: {1}", user.Id, errorJson);
+                }
+
+                return result;
+            });
+            claimTasks.Add(task);
+        }
+
+        // Replace the settings that already exists
+        foreach ((string key, string value) in settings
+            .Select(s => new KeyValuePair<string, string>(ConfigClaimPrefix + s.Key, s.Value))
+            .Where(s => userClaims.Any(c => c.Type == s.Key)))
+        {
+            Claim existClaim = userClaims.First(c => c.Type == key);
+
+            Task<IdentityResult> task = _userManager.ReplaceClaimAsync(user, existClaim, new(key, value)).ContinueWith<IdentityResult>(task =>
+            {
+                // Error handling
+                IdentityResult result = task.Result;
+                if (!result.Succeeded)
+                {
+                    string errorJson = JsonConvert.SerializeObject(result.Errors);
+                    _logger.LogError("An identity error happened while setting account image of user {0}; setting: {1}; error: {2}", user.Id, key, errorJson);
+                }
+
+                return result;
+            });
+            claimTasks.Add(task);
+        }
+
+        IEnumerable<IdentityResult> results = await Task.WhenAll(claimTasks).ConfigureAwait(false);
+        if (results.Any(r => !r.Succeeded))
+            throw new Exception("An occurred error happened while setting account settings");
+
+        return Ok();
+    }
+
+    /// <summary>
     /// Returns the profile image of the currently logged in account.
     /// </summary>
     /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp. OPTIONAL 'image/png' by default</param>
     /// <returns>The image of the account</returns>
     /// <response code="204">No content: No image was set for the profile.</response>
     [HttpGet]
-    [Route("Image")]
+    [Route("image")]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -58,7 +250,7 @@ public sealed class AccountController : ControllerBase
     /// <returns>The image of the account with the given id.</returns>
     /// <response code="204">No content: No image was set for the profile.</response>
     [HttpGet]
-    [Route("Image/{accountId}")]
+    [Route("image/{accountId}")]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -143,10 +335,10 @@ public sealed class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Clears the profile image of the current user
+    /// Clears the profile image of the current user.
     /// </summary>
     [HttpDelete]
-    [Route("Image")]
+    [Route("image")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> DeleteImage()
     {
@@ -166,7 +358,7 @@ public sealed class AccountController : ControllerBase
     /// 
     /// Sample request:
     ///                         
-    ///     POST /api/v1/Account/Image
+    ///     PUT /api/v1/account/image
     ///     Content-Length: 123456
     ///     Content-Type: multipart/form-data; boundary=abcdefg
     ///     
@@ -190,11 +382,11 @@ public sealed class AccountController : ControllerBase
     ///     
     /// Valid image formats for the uploaded image are Gif, Jpg, Jpeg, Bitmap, Pbm, Png, Tga, Tiff and WebP
     /// </remarks>
-    [HttpPost]
-    [Route("Image")]
+    [HttpPut]
+    [Route("image")]
     [Consumes(typeof(IFormFile), "multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status200OK)]
-    public async Task<IActionResult> PostImage([FromForm(Name = "Image")] IFormFile imageForm, [FromForm(Name = "Crop")] CropModel? cropData = null)
+    public async Task<IActionResult> PutImage([FromForm(Name = "Image")] IFormFile imageForm, [FromForm(Name = "Crop")] CropModel? cropData = null)
     {
         // Setup the parameter
         cropData = null;
@@ -267,8 +459,8 @@ public sealed class AccountController : ControllerBase
         if (!result.Succeeded)
         {
             string errorJson = JsonConvert.SerializeObject(result.Errors);
-            _logger.LogError("An occured error happened while setting account image of user {0}; Error: {1}", currentUserId, errorJson);
-            throw new Exception("An occured error happened while setting account image");
+            _logger.LogError("An identity error happened while setting account image of user {0}; Error: {1}", currentUserId, errorJson);
+            throw new Exception("An occurred error happened while setting account image");
         }
 
         _logger.LogInformation("User {1} updated account image", currentUserId);

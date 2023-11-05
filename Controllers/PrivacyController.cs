@@ -8,13 +8,13 @@ namespace WebSchoolPlanner.Controllers;
 /// </summary>
 [Controller]
 [AllowAnonymous]
-[Route("Privacy/")]
+[Route("privacy/")]
 public sealed class PrivacyController : Controller
 {
     /// <summary>
     /// A view for the cookie policy
     /// </summary>
-    [Route("CookiePolicy")]
+    [Route("cookie_policy")]
     public IActionResult CookiePolicy()
     {
         return View();

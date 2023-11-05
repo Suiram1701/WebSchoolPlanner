@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace WebSchoolPlanner.Controllers;
 
 [Authorize]
-[Route("Account/")]
+[Route("account/")]
 [Controller]
 public sealed class AccountController : Controller
 {
@@ -14,7 +14,7 @@ public sealed class AccountController : Controller
         return View();
     }
 
-    [Route("Settings")]
+    [Route("settings")]
     public IActionResult Settings()
     {
         return View();

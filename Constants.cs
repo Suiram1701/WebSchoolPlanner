@@ -11,5 +11,7 @@ public static class Constants
 
     public const string AppInfoConfigurationPrefix = "ApplicationInfo:";
 
+    public const string ConfigClaimPrefix = "config_";
+
     public const long MaxAccountImageSize = 5000000;
 }
