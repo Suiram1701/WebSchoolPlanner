@@ -53,6 +53,7 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\js\Auth\" />
+    <Folder Include="wwwroot\js\Account\" />
     <Folder Include="wwwroot\js\Shared\" />
   </ItemGroup>
 

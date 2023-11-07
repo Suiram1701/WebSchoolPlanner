@@ -1,9 +1,71 @@
-﻿@inject IViewLocalizer _localizer;
+﻿@using Microsoft.Extensions.Options;
+
+@inject IViewLocalizer _localizer;
+@inject IOptions<RequestLocalizationOptions> _localizationOptions;
 
 @{
     ViewData["Title"] = _localizer["Title"];
 }
 
+@section Scripts {
+    <script src="~/js/Account/Settings.js"></script>
+}
+
 <div class="text-center">
-    Einstellungen
+    <h3>@_localizer["Title"]</h3>
+
+    <div class="m-5">
+        <h3 class="text-start fw-light">@_localizer["Representation"]</h3>
+        <hr />
+
+        <div class="d-flex flex-wrap justify-content-center">
+
+            <!-- language selection -->
+            <div class="mb-5 mx-4">
+                <h5 class="fw-light">@_localizer["Culture"]</h5>
+
+                <div class="dropdown">
+                    <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img class="me-1 align-middle" src="~/img/flag.@(ViewBag.UICulture).svg" height="20" />
+                        @ViewBag.UICulture.DisplayName
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        @foreach (CultureInfo uiCulture in _localizationOptions.Value.SupportedUICultures!)
+                        {
+                            bool isCultureSelected = uiCulture.Name == ViewBag.UICulture.Name;
+
+                            <li>
+                                <a class="dropdown-item @if (isCultureSelected) {<text>active</text>}" id="userLanguageSwitch" data-culture="@uiCulture">
+                                    <img class="me-1" src="~/img/flag.@(uiCulture).svg" height="20" width="28" />
+                                    @uiCulture.NativeName
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+
+            <!-- color theme selection -->
+            <div class="mb-5 mx-4">
+                <h5 class="fw-light">@_localizer["ColorMode"]</h5>
+
+                <div class="dropdown">
+                    <button id="theme-display" class="btn dropdown-toggle py-auto" data-bs-toggle="dropdown" aria-expanded="false">
+                        <img src="~/img/@(ViewBag.Theme.ToString().ToLower())_mode.svg" height="20" width="20" />
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end">
+                        @foreach (Theme theme in Enum.GetValues<Theme>())
+                        {
+                            <li>
+                                <button type="button" class="dropdown-item d-flex align-items-center @{if (ViewBag.Theme == theme) {<text>active</text>}}" id="userColorThemeSwitch" data-theme="@theme.ToString()">
+                                    <img src="~/img/@(theme.ToString().ToLower())_mode.svg" class="me-2" height="20" width="20" />
+                                    @_localizer["ColorMode_" + theme.ToString()]
+                                </button>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>

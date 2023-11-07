@@ -2,9 +2,10 @@
     width: 100%;
 }
 
-.main-div {
+.sidebar-main-div {
     --sidebar-widht: 290px;
-    left: var(--sidebar-widht);
+    width: calc(100vw - var(--sidebar-widht)); 
+    right: 0;
     position: absolute;
 }
 

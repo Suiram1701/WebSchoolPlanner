@@ -384,7 +384,7 @@ public sealed class AccountController : ControllerBase
     /// </remarks>
     [HttpPut]
     [Route("image")]
-    [Consumes(typeof(IFormFile), "multipart/form-data")]
+    [Consumes("multipart/form-data")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> PutImage([FromForm(Name = "Image")] IFormFile imageForm, [FromForm(Name = "Crop")] CropModel? cropData = null)
     {

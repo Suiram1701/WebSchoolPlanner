@@ -8,23 +8,7 @@
 @inject IOptions<RequestLocalizationOptions> _localizationOptions;
 
 @{
-    // User
     User? user = await _userManager.GetUserAsync(User);
-
-    // color theme
-    string? themeCookieValue = Context.Request.Cookies[".AspNetCore.Theme"];
-    switch (themeCookieValue)
-    {
-        case "white":
-            ViewBag.Theme = Theme.White;
-            break;
-        case "dark":
-            ViewBag.Theme = Theme.Dark;
-            break;
-        default:
-            ViewBag.Theme = Theme.Auto;
-            break;
-    }
 }
 
 <!DOCTYPE html>
@@ -55,6 +39,10 @@
         <script src="~/js/Shared/_layout.js" async></script>
     </head>
     <body class="vh-100 d-flex @{if (!(User.Identity?.IsAuthenticated ?? false)) {<text>flex-column</text>}} bg-body-tertiary">
+
+        <!-- error box -->
+        <div class="fixed-top mx-5 mt-2" id="errorBoxPlaceHolder"></div>
+
         @{
             bool IsItemSelected(string controller, string action)
             {
@@ -158,7 +146,7 @@
                     <li class="navbar-item">
                         <div class="dropdown">
                             <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
-                                <img class="me-1" src="~/img/flag.@(ViewBag.UICulture).svg" height="18" />
+                                <img class="me-1" src="~/img/flag.@(ViewBag.UICulture).svg" height="20" />
                                 @ViewBag.UICulture.DisplayName
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
@@ -168,8 +156,8 @@
 
                                     <li>
                                         <a class="dropdown-item @if (isCultureSelected) {<text>active</text>}" id="languageSwitch" data-culture="@uiCulture">
-                                            <img class="me-1" src="~/img/flag.@(uiCulture).svg" height="15" width="18" />
-                                            @uiCulture.DisplayName
+                                            <img class="me-1" src="~/img/flag.@(uiCulture).svg" height="20" width="28" />
+                                            @uiCulture.NativeName
                                         </a>
                                     </li>
                                 }
@@ -184,24 +172,15 @@
                                 <img src="~/img/@(ViewBag.Theme.ToString().ToLower())_mode.svg" height="20" width="20" />
                             </button>
                             <ul class="dropdown-menu dropdown-menu-end">
-                                <li>
-                                    <button type="button" class="dropdown-item d-flex align-items-center" data-theme="auto">
-                                        <img src="~/img/auto_mode.svg" height="20" width="20" />
-                                        @_localizer["ColorMode_Auto"]
-                                    </button>
-                                </li>
-                                <li>
-                                    <button type="button" class="dropdown-item d-flex align-items-center" data-theme="white">
-                                        <img src="~/img/white_mode.svg" height="20" width="20" />
-                                        @_localizer["ColorMode_White"]
-                                    </button>
-                                </li>
-                                <li>
-                                    <button type="button" class="dropdown-item d-flex align-items-center" data-theme="dark">
-                                        <img src="~/img/dark_mode.svg" height="20" width="20" />
-                                        @_localizer["ColorMode_Dark"]
-                                    </button>
-                                </li>
+                                @foreach (Theme theme in Enum.GetValues<Theme>())
+                                {
+                                    <li>
+                                        <button type="button" class="dropdown-item d-flex align-items-center @{if (ViewBag.Theme == theme) {<text>active</text>}}" id="colorThemeSwitch" data-theme="theme.ToString().ToLower()">
+                                            <img src="~/img/@(theme.ToString().ToLower())_mode.svg" class="me-2" height="20" width="20" />
+                                            @_localizer["ColorMode_" + theme.ToString()]
+                                        </button>
+                                    </li>
+                                }
                             </ul>
                         </div>
                     </li>
@@ -210,7 +189,7 @@
         </nav>
         }
 
-        <div class="flex-grow-1 d-flex flex-column w-auto main-div">
+        <div class="h-100 flex-grow-1 d-flex flex-column @{if (User.Identity?.IsAuthenticated ?? false) {<text>sidebar-main-div</text>}}">
             <main role="main" class="flex-grow-1 m-auto p-3 align-items-center">
                 @RenderBody()
             </main>
@@ -242,10 +221,10 @@
 
                 <ul class="nav col-md-4 justify-content-end">
                     <li class="nav-item">
-                    <a class="nav-link px-2 text-body-secondary" asp-controller="Privacy" asp-action="CookiePolicy">
-                        @_localizer["CookiePolicy"]
-                    </a>
-                </li>
+                        <a class="nav-link px-2 text-body-secondary" asp-controller="Privacy" asp-action="CookiePolicy">
+                            @_localizer["CookiePolicy"]
+                        </a>
+                    </li>
                 </ul>
             </footer>
         </div>

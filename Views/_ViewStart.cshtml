@@ -2,5 +2,20 @@
     ViewBag.Culture = Thread.CurrentThread.CurrentCulture;
     ViewBag.UICulture = Thread.CurrentThread.CurrentUICulture;
 
+    // color theme
+    string? themeCookieValue = Context.Request.Cookies[".AspNetCore.Theme"];
+    switch (themeCookieValue)
+    {
+        case "white":
+            ViewBag.Theme = Theme.White;
+            break;
+        case "dark":
+            ViewBag.Theme = Theme.Dark;
+            break;
+        default:
+            ViewBag.Theme = Theme.Auto;
+            break;
+    }
+
     Layout = "_Layout";
 }

@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Identity;
 using WebSchoolPlanner.Db;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerUI;
+using WebSchoolPlanner.Localization;
 
 namespace WebSchoolPlanner;
 
@@ -72,6 +73,10 @@ public class Startup
                 // Providers
                 options.RequestCultureProviders = new List<IRequestCultureProvider>
                 {
+                    new AccountRequestCultureProvider
+                    {
+                        Options = options
+                    },
                     new CookieRequestCultureProvider
                     {
                         Options = options

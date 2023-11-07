@@ -13,7 +13,7 @@ namespace WebSchoolPlanner.Swagger;
 public class SwaggerResponseOperationFilter : IOperationFilter
 {
     private const string _jsonResponse = "application/json";
-    private const string _jsonProblemReponse = "application/problem+json";
+    private const string _jsonProblemResponse = "application/problem+json";
 
 #pragma warning disable CS8618
     private OpenApiSchema _problemSchemaRef;
@@ -38,7 +38,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                         new() { Schema = _exceptionSchemaRef }
                     },
                     {
-                        _jsonProblemReponse,
+                        _jsonProblemResponse,
                         new() { Schema = _problemSchemaRef }
                     }
                 }
@@ -53,7 +53,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
-                        _jsonProblemReponse,
+                        _jsonProblemResponse,
                         new() { Schema = _problemSchemaRef }
                     }
                 }
@@ -73,7 +73,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
                         {
-                            _jsonProblemReponse,
+                            _jsonProblemResponse,
                             new() { Schema = _problemSchemaRef }
                         }
                     }
@@ -89,7 +89,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
-                        _jsonProblemReponse,
+                        _jsonProblemResponse,
                         new() { Schema = _problemSchemaRef }
                     }
                 }
