@@ -98,30 +98,30 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Login" xml:space="preserve">
-    <value></value>
+    <value>Anmelden</value>
   </data>
   <data name="UsernameLabel" xml:space="preserve">
-    <value></value>
+    <value>Nutzername</value>
   </data>
   <data name="PasswdLabel" xml:space="preserve">
-    <value></value>
+    <value>Passwort</value>
   </data>
   <data name="RememberMeLabel" xml:space="preserve">
-    <value></value>
+    <value>Angemeldet bleiben</value>
   </data>
   <data name="PlsSignIn" xml:space="preserve">
-    <value></value>
+    <value>Bitte einloggen</value>
   </data>
   <data name="InvalidLoginData" xml:space="preserve">
-    <value></value>
+    <value>Der Benutzername oder das Passwort ist ungültig</value>
   </data>
   <data name="UserLocked" xml:space="preserve">
-    <value></value>
+    <value>Der Benutzer ist derzeit blockiert. Bitte versuchen Sie es erneut {0}.</value>
   </data>
   <data name="NotAllowed" xml:space="preserve">
-    <value></value>
+    <value>Es ist derzeit nicht erlaubt, sich in dieses Konto einzuloggen.</value>
   </data>
   <data name="StateInvalid" xml:space="preserve">
-    <value></value>
+    <value>Bei der Anfrage ist ein Fehler aufgetreten. Bitte versuche es erneut.</value>
   </data>
 </root>

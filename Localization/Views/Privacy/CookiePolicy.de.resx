@@ -98,54 +98,54 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Title" xml:space="preserve">
-    <value></value>
+    <value>Cookie-Richtlinie</value>
   </data>
   <data name="MainTitle" xml:space="preserve">
-    <value></value>
+    <value>Unsere Cookie-Richtlinie</value>
   </data>
   <data name="Description" xml:space="preserve">
-    <value></value>
+    <value>Unsere Website verwendet Cookies, um Ihnen das bestmögliche Online-Erlebnis zu bieten. Cookies sind kleine Textdateien, die auf Ihrem Gerät gespeichert werden. Sie helfen uns, die Website-Leistung zu verbessern.</value>
   </data>
   <data name="KindOfCookies" xml:space="preserve">
-    <value></value>
+    <value>Arten von Cookies, die wir verwenden:</value>
   </data>
   <data name="NeededCookies" xml:space="preserve">
-    <value></value>
+    <value>Diese Cookies sind unerlässlich, damit die Website ordnungsgemäß funktioniert. Sie ermöglichen die Navigation auf der Seite und den Zugriff auf gesicherte Bereiche.</value>
   </data>
   <data name="FunctionalCookies" xml:space="preserve">
-    <value></value>
+    <value>Diese Cookies speichern Einstellungen und Präferenzen, um Ihr Benutzererlebnis zu verbessern.</value>
   </data>
   <data name="NeededCookiesTitle" xml:space="preserve">
-    <value></value>
+    <value>Notwendige Cookies:</value>
   </data>
   <data name="FunctionalCookiesTitle" xml:space="preserve">
-    <value></value>
+    <value>Funktionalitäts-Cookies:</value>
   </data>
   <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
-    <value></value>
+    <value>Dies ist ein Token zum Schutz vor CSRF/XSRF-Angriffen (Cross-Site Request Forgery), um zu überprüfen, ob Sie das Formular gesendet haben.</value>
   </data>
   <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
-    <value></value>
+    <value>Dies ist ein Token, um Sie als angemeldeten Benutzer zu identifizieren.</value>
   </data>
   <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
-    <value></value>
+    <value>Dieser Cookie speichert, ob Sie im Cookie-Richtlinien-Popup bereits auf „Verstanden“ geklickt haben, sodass wir Sie in Zukunft nicht mehr damit belästigen müssen.</value>
   </data>
   <data name=".AspNetCore.Culture.Description" xml:space="preserve">
-    <value></value>
+    <value>Dieser Cookie speichert Ihre Präferenz hinsichtlich der Sprache, in der wir Ihnen unsere Website anzeigen sollen.</value>
   </data>
   <data name="CookieManageTitle" xml:space="preserve">
-    <value></value>
+    <value>Cookie-Verwaltung:</value>
   </data>
   <data name="CookieManage" xml:space="preserve">
-    <value></value>
+    <value>Sie können die Verwendung von Cookies in Ihren Browsereinstellungen kontrollieren. Beachten Sie jedoch, dass das Deaktivieren von Cookies die Funktionalität der Website beeinträchtigen kann. Mit der Nutzung unserer Website erklären Sie sich mit der Verwendung von Cookies gemäß unserer Cookie-Richtlinie einverstanden. Für weitere Informationen lesen Sie unsere vollständige Datenschutzerklärung.</value>
   </data>
   <data name="CookieChangeTitle" xml:space="preserve">
-    <value></value>
+    <value>Änderungen an unserer Cookie-Richtlinie:</value>
   </data>
   <data name="CookieChange" xml:space="preserve">
-    <value></value>
+    <value>Wir behalten uns das Recht vor, unsere Cookie-Richtlinie zu aktualisieren. Überprüfen Sie regelmäßig diese Seite auf Aktualisierungen.</value>
   </data>
   <data name=".AspNetCore.Theme.Description" xml:space="preserve">
-    <value></value>
+    <value>Dieser Cookie speichert das von Ihnen bevorzugte Farbthema.</value>
   </data>
 </root>

@@ -38,32 +38,19 @@ public class Startup
             .AddLocalization(options => options.ResourcesPath = "Localization")
             .AddRequestLocalization(options =>
             {
-                List<CultureInfo> uiCultures = new()
+                List<CultureInfo> cultures = new()
                 {
                     new("en"),
-                    new("en-US"),
-                    new("en-GB"),
                     new("es"),
-                    new("es-ES"),
-                    new("es-MX"),
                     new("de"),
-                    new("de-DE"),
-                    new("de-AT"),
                     new("fr"),
-                    new("fr-FR"),
-                    new("fr-BE"),
-                    new("ru"),
-                    new("ru-RU"),
-                    new("ru-UA"),
+                    new("ru")
                 };
-                IEnumerable<string> cultures = uiCultures
-                    .Where(c => c.IsNeutralCulture || c.Name == "fr-BE")     // Use only neutral cultures except of fr-BE because it is supported
-                    .Select(c => c.Name);
 
                 // Set cultures
-                options.SetDefaultCulture(uiCultures[0].Name);
-                options.AddSupportedUICultures(uiCultures.Select(c => c.Name).ToArray());
-                options.AddSupportedCultures(cultures.ToArray());
+                options.SetDefaultCulture(cultures[0].Name);
+                options.AddSupportedUICultures(cultures.Select(c => c.Name).ToArray());
+                options.AddSupportedCultures(cultures.Select(c => c.Name).ToArray());
 
                 // Other options
                 options.FallBackToParentUICultures = true;
@@ -177,7 +164,7 @@ public class Startup
         {
             app.UseSwaggerUI(options =>
             {
-                options.SupportedSubmitMethods();     // Enable the 'Try it out' feature only for GET requests
+                options.SupportedSubmitMethods();     // Disable 'Try it out' feature
 
                 // Register all api versions
                 IApiVersionDescriptionProvider provider = app.ApplicationServices.GetService<IApiVersionDescriptionProvider>()!;

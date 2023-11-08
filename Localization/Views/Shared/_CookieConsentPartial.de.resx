@@ -98,12 +98,12 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="CookieConsentBanner" xml:space="preserve">
-    <value></value>
+    <value>Diese Website verwendet Cookies, um die ordnungsgemäße Funktionalität sicherzustellen. Durch die weitere Nutzung der Website stimmen Sie der Cookie-Richtlinie zu. Erfahren Sie mehr in unserer</value>
   </data>
   <data name="CookieConsent" xml:space="preserve">
-    <value></value>
+    <value>Cookie-Richtlinie</value>
   </data>
   <data name="Accept" xml:space="preserve">
-    <value></value>
+    <value>Verstanden</value>
   </data>
 </root>

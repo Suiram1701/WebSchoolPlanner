@@ -1,6 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <root>
-	<!-- 
+  <!-- 
 		Microsoft ResX Schema
 
 		Version 1.3
@@ -58,44 +58,94 @@
 			: using a System.ComponentModel.TypeConverter
 			: and then encoded with base64 encoding.
 	-->
-	
-	<xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
-		<xsd:element name="root" msdata:IsDataSet="true">
-			<xsd:complexType>
-				<xsd:choice maxOccurs="unbounded">
-					<xsd:element name="data">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-								<xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
-							<xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
-							<xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
-						</xsd:complexType>
-					</xsd:element>
-					<xsd:element name="resheader">
-						<xsd:complexType>
-							<xsd:sequence>
-								<xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
-							</xsd:sequence>
-							<xsd:attribute name="name" type="xsd:string" use="required" />
-						</xsd:complexType>
-					</xsd:element>
-				</xsd:choice>
-			</xsd:complexType>
-		</xsd:element>
-	</xsd:schema>
-	<resheader name="resmimetype">
-		<value>text/microsoft-resx</value>
-	</resheader>
-	<resheader name="version">
-		<value>1.3</value>
-	</resheader>
-	<resheader name="reader">
-		<value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
-	<resheader name="writer">
-		<value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-	</resheader>
+  <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:msdata="urn:schemas-microsoft-com:xml-msdata">
+    <xsd:element name="root" msdata:IsDataSet="true">
+      <xsd:complexType>
+        <xsd:choice maxOccurs="unbounded">
+          <xsd:element name="data">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+                <xsd:element name="comment" type="xsd:string" minOccurs="0" msdata:Ordinal="2" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" msdata:Ordinal="1" />
+              <xsd:attribute name="type" type="xsd:string" msdata:Ordinal="3" />
+              <xsd:attribute name="mimetype" type="xsd:string" msdata:Ordinal="4" />
+            </xsd:complexType>
+          </xsd:element>
+          <xsd:element name="resheader">
+            <xsd:complexType>
+              <xsd:sequence>
+                <xsd:element name="value" type="xsd:string" minOccurs="0" msdata:Ordinal="1" />
+              </xsd:sequence>
+              <xsd:attribute name="name" type="xsd:string" use="required" />
+            </xsd:complexType>
+          </xsd:element>
+        </xsd:choice>
+      </xsd:complexType>
+    </xsd:element>
+  </xsd:schema>
+  <resheader name="resmimetype">
+    <value>text/microsoft-resx</value>
+  </resheader>
+  <resheader name="version">
+    <value>1.3</value>
+  </resheader>
+  <resheader name="reader">
+    <value>System.Resources.ResXResourceReader, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <resheader name="writer">
+    <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
+  </resheader>
+  <data name="Title" xml:space="preserve">
+    <value>Política de cookies</value>
+  </data>
+  <data name="MainTitle" xml:space="preserve">
+    <value>Nuestra Política de Cookies</value>
+  </data>
+  <data name="Description" xml:space="preserve">
+    <value>Nuestro sitio web utiliza cookies para brindarle la mejor experiencia en línea posible.</value>
+  </data>
+  <data name="KindOfCookies" xml:space="preserve">
+    <value>Tipos de cookies que utilizamos:</value>
+  </data>
+  <data name="NeededCookies" xml:space="preserve">
+    <value>Estas cookies son esenciales para que el sitio web funcione correctamente.</value>
+  </data>
+  <data name="FunctionalCookies" xml:space="preserve">
+    <value>Estas cookies almacenan configuraciones y preferencias para mejorar su experiencia de usuario.</value>
+  </data>
+  <data name="NeededCookiesTitle" xml:space="preserve">
+    <value>Cookies necesarias:</value>
+  </data>
+  <data name="FunctionalCookiesTitle" xml:space="preserve">
+    <value>Cookies de funcionalidad:</value>
+  </data>
+  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
+    <value>Este es un token para proteger contra ataques CSRF/XSRF (falsificación de solicitudes entre sitios) para verificar que ha enviado el formulario.</value>
+  </data>
+  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
+    <value>Este es un token para identificarlo como usuario registrado.</value>
+  </data>
+  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
+    <value>Esta cookie recuerda si ya hizo clic en "Entiendo" en la ventana emergente de la política de cookies para que no tengamos que molestarlo en el futuro.</value>
+  </data>
+  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
+    <value>Esta cookie almacena su preferencia en cuanto al idioma en el que debemos mostrarle nuestro sitio web.</value>
+  </data>
+  <data name="CookieManageTitle" xml:space="preserve">
+    <value>Gestión de cookies:</value>
+  </data>
+  <data name="CookieManage" xml:space="preserve">
+    <value>Puede controlar el uso de cookies en la configuración de su navegador.</value>
+  </data>
+  <data name="CookieChangeTitle" xml:space="preserve">
+    <value>Cambios en nuestra política de cookies:</value>
+  </data>
+  <data name="CookieChange" xml:space="preserve">
+    <value>Nos reservamos el derecho de actualizar nuestra política de cookies.</value>
+  </data>
+  <data name=".AspNetCore.Theme.Description" xml:space="preserve">
+    <value>Esta cookie almacena el tema de color que prefieras.</value>
+  </data>
 </root>
