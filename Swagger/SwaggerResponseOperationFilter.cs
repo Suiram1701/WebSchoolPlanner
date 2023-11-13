@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Net.Http.Headers;
 using Microsoft.OpenApi.Models;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Reflection;
+using WebSchoolPlanner.Swagger.Attributes;
 
 namespace WebSchoolPlanner.Swagger;
 
@@ -22,15 +24,43 @@ public class SwaggerResponseOperationFilter : IOperationFilter
 
     void IOperationFilter.Apply(OpenApiOperation operation, OperationFilterContext context)
     {
-        if (!context.SchemaRepository.Schemas.Any())
+        if (!context.SchemaRepository.Schemas.ContainsKey("ProblemErrorResponse"))
             SetupSchemas(context);
 
-        // Add default responses
-        if (operation.Parameters.Any())
+        // Authentication
+        if (context.MethodInfo.GetCustomAttribute<AllowAnonymousAttribute>() is null)
+        {
+            operation.Responses.Add(StatusCodes.Status401Unauthorized.ToString(), new()
+            {
+                Description = "The authentication information is missing or is invalid.",
+                Content = new Dictionary<string, OpenApiMediaType>
+                {
+                    {
+                        _jsonProblemResponse,
+                        new() { Schema = _problemSchemaRef }
+                    }
+                }
+            });
+
+            operation.Responses.Add(StatusCodes.Status403Forbidden.ToString(), new()
+            {
+                Description = "The logged in account isn't authorized to call this method.",
+                Content = new Dictionary<string, OpenApiMediaType>
+                {
+                    {
+                        _jsonProblemResponse,
+                        new() { Schema = _problemSchemaRef }
+                    }
+                }
+            });
+        }
+
+        // Parameters
+        if (operation.Parameters.Any() || (operation.RequestBody?.Required ?? false))
         {
             operation.Responses.Add(StatusCodes.Status400BadRequest.ToString(), new()
             {
-                Description = "Bad request: Invalid data was sent in the request.",
+                Description = "The request contains invalid data.",
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
@@ -43,25 +73,8 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                     }
                 }
             });
-        }
 
-        if (context.MethodInfo.GetCustomAttribute<AllowAnonymousAttribute>() is null)
-        {
-            operation.Responses.Add(StatusCodes.Status401Unauthorized.ToString(), new()
-            {
-                Description = "Unauthorized: This endpoint requires an authentication.",
-                Content = new Dictionary<string, OpenApiMediaType>
-                {
-                    {
-                        _jsonProblemResponse,
-                        new() { Schema = _problemSchemaRef }
-                    }
-                }
-            });
-        }
-
-        if (operation.Parameters.Any())
-        {
+            // Not acceptable
             if (operation.Parameters.Any(p => p.In == ParameterLocation.Header &&
                 (p.Name == HeaderNames.Accept
                 || p.Name == HeaderNames.AcceptEncoding
@@ -69,7 +82,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
             {
                 operation.Responses.Add(StatusCodes.Status406NotAcceptable.ToString(), new()
                 {
-                    Description = "Not acceptable: The content of the 'Accept', 'Accept-Language' or 'Accept-Range' header is invalid.",
+                    Description = "The content of the 'Accept', 'Accept-Language' or 'Accept-Range' header is invalid.",
                     Content = new Dictionary<string, OpenApiMediaType>
                     {
                         {
@@ -85,7 +98,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
         {
             operation.Responses.Add(StatusCodes.Status415UnsupportedMediaType.ToString(), new()
             {
-                Description = "Unsupported media type: The media type of the request isn't supported by the endpoint.",
+                Description = "The Content-Type of the request isn't supported by the method.",
                 Content = new Dictionary<string, OpenApiMediaType>
                 {
                     {
@@ -96,9 +109,35 @@ public class SwaggerResponseOperationFilter : IOperationFilter
             });
         }
 
-        operation.Responses.Add(StatusCodes.Status500InternalServerError.ToString(), new()
+        // Response headers
+        foreach (ProducesResponseHeaderAttribute attribute in context.MethodInfo.GetCustomAttributes<ProducesResponseHeaderAttribute>())
         {
-            Description = "Internal server error: An internal error happend while the request.",
+            OpenApiSchema schema = context.SchemaGenerator.GenerateSchema(attribute.HeaderType, context.SchemaRepository);
+            OpenApiHeader header = new()
+            {
+                Description = attribute.Description,
+                Schema = schema
+            };
+
+            if (attribute.StatusCodes.Any(sc => sc == -1))
+            {
+                foreach ((string _, OpenApiResponse response) in operation.Responses)
+                    response.Headers.Add(attribute.HeaderName, header);
+            }
+            else
+            {
+                foreach ((string key, OpenApiResponse response) in operation.Responses)
+                {
+                    if (attribute.StatusCodes.Any(sc => sc.ToString() == key))
+                        response.Headers.Add(attribute.HeaderName, header);
+                }
+            }
+        }
+
+        // Internal server error
+        operation.Responses.Add("5XX", new()
+        {
+            Description = "An internal error happend while the request.",
             Content = new Dictionary<string, OpenApiMediaType>
             {
                 {

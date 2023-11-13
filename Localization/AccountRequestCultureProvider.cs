@@ -10,18 +10,17 @@ namespace WebSchoolPlanner.Localization;
 /// </summary>
 public class AccountRequestCultureProvider : RequestCultureProvider
 {
-    public override async Task<ProviderCultureResult?> DetermineProviderCultureResult(HttpContext httpContext)
+    public override Task<ProviderCultureResult?> DetermineProviderCultureResult(HttpContext httpContext)
     {
-        UserManager<User> userManager = httpContext.RequestServices.GetService<UserManager<User>>()!;
+        SignInManager<User> signInManager = httpContext.RequestServices.GetService<SignInManager<User>>()!;
+        if (!signInManager.IsSignedIn(httpContext.User))
+            return NullProviderCultureResult;
 
-        User? user = await userManager.GetUserAsync(httpContext.User);
-        if (user is null)
-            return NullProviderCultureResult.Result;
-
-        Claim? cultureClaim = (await userManager.GetClaimsAsync(user)).FirstOrDefault(c => c.Type == ConfigClaimPrefix + "culture");
+        IList<Claim> userClaims = (List<Claim>)httpContext.Items["userClaims"]!;
+        Claim? cultureClaim = userClaims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "culture");
         if (cultureClaim is null)
-            return new("en");
+            return Task.FromResult<ProviderCultureResult?>(new("en"));
 
-        return new(cultureClaim.Value);
+        return Task.FromResult<ProviderCultureResult?>(new(cultureClaim.Value));
     }
 }

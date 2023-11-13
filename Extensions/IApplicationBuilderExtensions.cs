@@ -3,11 +3,39 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System.Diagnostics;
 using System.Text;
+using WebSchoolPlanner.Middlewares;
 
 namespace WebSchoolPlanner.Extensions;
 
 public static class IApplicationBuilderExtensions
 {
+    /// <summary>
+    /// Use the default database request only for requests that renders a view
+    /// </summary>
+    /// <returns>The request pipeline</returns>
+    public static IApplicationBuilder UseDatabaseRequestMiddleware(this IApplicationBuilder app)
+    {
+        return app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), subApp => subApp.UseMiddleware<DatabaseRequestMiddleware>());
+    }
+
+    /// <summary>
+    /// Use the RequestLocalizationMiddleware only for not api requests
+    /// </summary>
+    /// <returns>The request pipeline</returns>
+    public static IApplicationBuilder UseLocalization(this IApplicationBuilder app)
+    {
+        return app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), subApp => subApp.UseRequestLocalization());
+    }
+
+    /// <summary>
+    /// Use the <see cref="ApiAuthorizeMiddleware"/> if it is a api request
+    /// </summary>
+    /// <returns>The request pipeline</returns>
+    public static IApplicationBuilder UseApiAuthorization(this IApplicationBuilder app)
+    {
+        return app.UseWhen(context => context.Request.Path.StartsWithSegments("/api"), subApp => subApp.UseMiddleware<ApiAuthorizeMiddleware>());
+    }
+
     /// <summary>
     /// Return Api exceptions as json
     /// </summary>
@@ -61,8 +89,12 @@ public static class IApplicationBuilderExtensions
 
             writer.WriteStartObject();
 
+            string exceptionName = ex.GetType().Name;
+            int suffixIndex = exceptionName.IndexOf(nameof(Exception));
+            string code = exceptionName.Remove(suffixIndex);
+
             writer.WritePropertyName("code");
-            writer.WriteValue(ex.GetType().Name);
+            writer.WriteValue(code);
 
             writer.WritePropertyName("message");
             writer.WriteValue(ex.Message);

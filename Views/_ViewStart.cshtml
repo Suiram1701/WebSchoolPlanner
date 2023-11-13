@@ -3,18 +3,30 @@
     ViewBag.UICulture = Thread.CurrentThread.CurrentUICulture;
 
     // color theme
-    string? themeCookieValue = Context.Request.Cookies[".AspNetCore.Theme"];
-    switch (themeCookieValue)
+    if (User.Identity?.IsAuthenticated ?? false)
     {
-        case "white":
-            ViewBag.Theme = Theme.White;
-            break;
-        case "dark":
-            ViewBag.Theme = Theme.Dark;
-            break;
-        default:
+        IList<Claim> userClaims = (IList<Claim>)Context.Items["userClaims"]!;
+        string? themeClaim = userClaims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "theme")?.Value;
+        if (string.IsNullOrEmpty(themeClaim))
             ViewBag.Theme = Theme.Auto;
-            break;
+        else
+            ViewBag.Theme = Enum.Parse<Theme>(themeClaim);
+    }
+    else
+    {
+        string? themeCookieValue = Context.Request.Cookies[".AspNetCore.Theme"];
+        switch (themeCookieValue)
+        {
+            case "white":
+                ViewBag.Theme = Theme.White;
+                break;
+            case "dark":
+                ViewBag.Theme = Theme.Dark;
+                break;
+            default:
+                ViewBag.Theme = Theme.Auto;
+                break;
+        }
     }
 
     Layout = "_Layout";

@@ -14,6 +14,7 @@ using WebSchoolPlanner.Db;
 using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using WebSchoolPlanner.Localization;
+using System.IO.Pipelines;
 
 namespace WebSchoolPlanner;
 
@@ -182,8 +183,10 @@ public class Startup
             .UseRouting()
             .UseSession()
             .UseAuthentication()
+            .UseApiAuthorization()
             .UseAuthorization()
-            .UseRequestLocalization()
+            .UseDatabaseRequestMiddleware()
+            .UseLocalization()
             .UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }

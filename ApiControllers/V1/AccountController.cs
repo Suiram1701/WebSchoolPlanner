@@ -13,6 +13,7 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http.HttpResults;
+using WebSchoolPlanner.Swagger.Attributes;
 
 namespace WebSchoolPlanner.ApiControllers.V1;
 
@@ -228,15 +229,16 @@ public sealed class AccountController : ControllerBase
     /// <summary>
     /// Returns the profile image of the currently logged in account.
     /// </summary>
-    /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp. OPTIONAL 'image/png' by default</param>
+    /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp.</param>
     /// <returns>The image of the account</returns>
     /// <response code="204">No content: No image was set for the profile.</response>
     [HttpGet]
     [Route("image")]
+    [ProducesIntegrityHash(StatusCodes.Status200OK)]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetImage([FromHeader(Name = AcceptHeaderName)] string? contentTypeHeader = null)
+    public async Task<IActionResult> GetImage([FromHeader(Name = AcceptHeaderName)] string? contentTypeHeader = ImageType)
     {
         User user = (await _userManager.GetUserAsync(User))!;
         return await GetUserImageAsync(user);
@@ -246,15 +248,16 @@ public sealed class AccountController : ControllerBase
     /// Returns the profile image of the account with the given id.
     /// </summary>
     /// <param name="accountId">The id of the account.</param>
-    /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp. OPTIONAL 'image/png' by default</param>
+    /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp.</param>
     /// <returns>The image of the account with the given id.</returns>
     /// <response code="204">No content: No image was set for the profile.</response>
     [HttpGet]
     [Route("image/{accountId}")]
+    [ProducesIntegrityHash(StatusCodes.Status200OK)]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(byte[]))]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
-    public async Task<IActionResult> GetImage([FromRoute] string accountId, [FromHeader(Name = AcceptHeaderName)] string? contentTypeHeader = null)
+    public async Task<IActionResult> GetImage([FromRoute] string accountId, [FromHeader(Name = AcceptHeaderName)] string? contentTypeHeader = ImageType)
     {
         if (!Guid.TryParse(accountId, out _))
             throw new FormatException($"The route value '{nameof(accountId)}' must be in the format of a GUID.");
@@ -280,14 +283,15 @@ public sealed class AccountController : ControllerBase
 
         using Stream stream = new MemoryStream(user.AccountImage);
         using Image image = await Image.LoadAsync(stream);
-        using MemoryStream memoryStream = new();
+        MemoryStream memoryStream = new();
+        HttpContext.Response.OnCompleted(async() => await memoryStream.DisposeAsync());
 
         // Use the type with highest request priority
-        string choosenTyp = string.Empty;
+        string chosenTyp = string.Empty;
         IEnumerable<string> acceptHeaders = HttpContext.Request.GetTypedHeaders().Accept
             .OrderByDescending(h => h, MediaTypeHeaderValueComparer.QualityComparer)
             .Select(mh => mh.MediaType.ToString())
-            .Select(mh => mh == "*/*" ? ImageType : mh)     // Use image/png when it doens't matter
+            .Select(mh => mh == "*/*" ? ImageType : mh)     // Use image/png when it doesn't matter
             .Select(mh => mh == "image/*" ? ImageType : mh);
         foreach (string mediaType in acceptHeaders)
         {
@@ -321,17 +325,17 @@ public sealed class AccountController : ControllerBase
                     continue;
             }
 
-            choosenTyp = mediaType;
+            chosenTyp = mediaType;
             break;
         }
 
-        if (string.IsNullOrEmpty(choosenTyp))
+        if (string.IsNullOrEmpty(chosenTyp))
             return Problem(
-                type: "None of the specified media types of the “Accept” header supported. Supported types are image/png, image/gif, image/jpeg, image/bmp, image/x-portable-bitmap, image/tga, image/tiff and image/webp. By default is image/png choosen.",
+                type: "None of the specified media types of the “Accept” header supported. Supported types are image/png, image/gif, image/jpeg, image/bmp, image/x-portable-bitmap, image/tga, image/tiff and image/webp. By default is image/png chosen.",
                 title: "UnSupportedMediaTypes",
                 statusCode: StatusCodes.Status406NotAcceptable);
 
-        return File(memoryStream.ToArray(), choosenTyp);
+        return this.FileWithIntegrityHash(memoryStream, chosenTyp);
     }
 
     /// <summary>
@@ -352,7 +356,7 @@ public sealed class AccountController : ControllerBase
     /// Set the given image to the current account as profile image.
     /// </summary>
     /// <param name="imageForm">The image to set</param>
-    /// <param name="cropData">The data to crop the image. OPTIONAL</param>
+    /// <param name="cropData">The data to crop the image.</param>
     /// <remarks>
     /// A rectangular image is required for the profile picture. When uploading, you can crop the image using the crop part of the form. If this part isn't given, the largest possible image is taken.
     /// 

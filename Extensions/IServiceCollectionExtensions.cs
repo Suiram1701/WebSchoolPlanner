@@ -12,6 +12,10 @@ public static class IServiceCollectionExtensions
     public static IServiceCollection AddSwagger(this IServiceCollection services)
     {
         return services.AddTransient<IConfigureOptions<SwaggerGenOptions>, SwaggerConfigureOptions>()
-            .AddSwaggerGen(options => options.OperationFilter<SwaggerResponseOperationFilter>());
+            .AddSwaggerGen(options =>
+            {
+                options.OperationFilter<SwaggerResponseOperationFilter>();
+                options.OperationFilter<SwaggerParameterOperationFilter>();
+            });
     }
 }
