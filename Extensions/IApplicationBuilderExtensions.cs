@@ -10,15 +10,6 @@ namespace WebSchoolPlanner.Extensions;
 public static class IApplicationBuilderExtensions
 {
     /// <summary>
-    /// Use the default database request only for requests that renders a view
-    /// </summary>
-    /// <returns>The request pipeline</returns>
-    public static IApplicationBuilder UseDatabaseRequestMiddleware(this IApplicationBuilder app)
-    {
-        return app.UseWhen(context => !context.Request.Path.StartsWithSegments("/api"), subApp => subApp.UseMiddleware<DatabaseRequestMiddleware>());
-    }
-
-    /// <summary>
     /// Use the RequestLocalizationMiddleware only for not api requests
     /// </summary>
     /// <returns>The request pipeline</returns>

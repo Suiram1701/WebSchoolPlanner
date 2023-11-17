@@ -14,7 +14,7 @@ public sealed class PrivacyController : Controller
     /// <summary>
     /// A view for the cookie policy
     /// </summary>
-    [Route("cookie_policy")]
+    [Route("cookiePolicy")]
     public IActionResult CookiePolicy()
     {
         return View();

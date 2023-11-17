@@ -57,7 +57,7 @@
                         @foreach (Theme theme in Enum.GetValues<Theme>())
                         {
                             <li>
-                                <button type="button" class="dropdown-item d-flex align-items-center @{if (ViewBag.Theme == theme) {<text>active</text>}}" id="userColorThemeSwitch" data-theme="@theme.ToString()">
+                                <button type="button" class="dropdown-item d-flex align-items-center @{if (ViewBag.Theme == theme) {<text>active</text>}}" id="userColorThemeSwitch" data-theme="@theme.ToString().ToLower()">
                                     <img src="~/img/@(theme.ToString().ToLower())_mode.svg" class="me-2" height="20" width="20" />
                                     @_localizer["ColorMode_" + theme.ToString()]
                                 </button>

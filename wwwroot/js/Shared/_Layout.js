@@ -1,8 +1,8 @@
 "use strict";
 
-function SetTheme(value, init) {
+function SetTheme(value, setCookie, setSvg) {
 
-    if (!init) {
+    if (setCookie) {
         // Set the saving cookie
         if (value !== "auto")
             Cookies.set(".AspNetCore.Theme", value, { expires: 364, path: "/", sameSite: "None", secure: true });
@@ -32,7 +32,7 @@ function SetTheme(value, init) {
 
     $("html").attr("data-bs-theme", attrValue);
 
-    if (!init)
+    if (!setSvg)
         return;
 
     // Set the svg
@@ -70,7 +70,7 @@ $().ready(function () {
     // color theme setup
     const currentTheme = $("html").attr("data-bs-theme");
     if (currentTheme === "auto")
-        SetTheme(currentTheme, false);
+        SetTheme(currentTheme, false, false);
 
     // color theme switch
     $("button[id='colorThemeSwitch']").each(function () {
@@ -78,7 +78,7 @@ $().ready(function () {
         const themeValue = element.attr("data-theme");
 
         element.click(function () {
-            SetTheme(themeValue, true)
+            SetTheme(themeValue, true, true);
         });
     });
 

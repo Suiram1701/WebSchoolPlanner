@@ -45,7 +45,7 @@ $().ready(function () {
 
         element.click(function () {
 
-            SetTheme(elementTheme.toLowerCase(), false);
+            SetTheme(elementTheme, false, true);
 
             let content = {
                 theme: elementTheme

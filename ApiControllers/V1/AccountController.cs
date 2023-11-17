@@ -27,14 +27,16 @@ namespace WebSchoolPlanner.ApiControllers.V1;
 public sealed class AccountController : ControllerBase
 {
     private readonly ILogger _logger;
+    private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
     private const string AcceptHeaderName = "Accept";
     private const string ImageType = "image/png";
 
-    public AccountController(ILogger<AccountController> logger, UserManager<User> userManager)
+    public AccountController(ILogger<AccountController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
     {
         _logger = logger;
+        _signInManager = signInManager;
         _userManager = userManager;
     }
 
@@ -151,7 +153,7 @@ public sealed class AccountController : ControllerBase
                         invalidSettings.Add(key);
                     break;
                 case "theme":
-                    if (!Enum.TryParse<Theme>(value, out _))
+                    if (!Enum.TryParse<Theme>(value, true, out _))
                         invalidSettings.Add(key);
                     break;
                 default:
@@ -225,6 +227,9 @@ public sealed class AccountController : ControllerBase
         IEnumerable<IdentityResult> results = await Task.WhenAll(claimTasks).ConfigureAwait(false);
         if (results.Any(r => !r.Succeeded))
             throw new Exception("An occurred error happened while setting account settings");
+
+        // Refresh the sign in token (because some claims are saved inside the token)
+        await _signInManager.RefreshSignInAsync(user);
 
         return Ok();
     }

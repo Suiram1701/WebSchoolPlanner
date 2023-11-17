@@ -5,12 +5,11 @@
     // color theme
     if (User.Identity?.IsAuthenticated ?? false)
     {
-        IList<Claim> userClaims = (IList<Claim>)Context.Items["userClaims"]!;
-        string? themeClaim = userClaims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "theme")?.Value;
+        string? themeClaim = User.Claims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "theme")?.Value;
         if (string.IsNullOrEmpty(themeClaim))
             ViewBag.Theme = Theme.Auto;
         else
-            ViewBag.Theme = Enum.Parse<Theme>(themeClaim);
+            ViewBag.Theme = Enum.Parse<Theme>(themeClaim, true);
     }
     else
     {

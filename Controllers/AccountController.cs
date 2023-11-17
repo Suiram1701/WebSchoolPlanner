@@ -8,12 +8,14 @@ namespace WebSchoolPlanner.Controllers;
 [Controller]
 public sealed class AccountController : Controller
 {
+    [HttpGet]
     [Route("")]
     public IActionResult Index()
     {
         return View();
     }
 
+    [HttpGet]
     [Route("settings")]
     public IActionResult Settings()
     {

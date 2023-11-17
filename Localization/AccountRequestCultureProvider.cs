@@ -16,8 +16,7 @@ public class AccountRequestCultureProvider : RequestCultureProvider
         if (!signInManager.IsSignedIn(httpContext.User))
             return NullProviderCultureResult;
 
-        IList<Claim> userClaims = (List<Claim>)httpContext.Items["userClaims"]!;
-        Claim? cultureClaim = userClaims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "culture");
+        Claim? cultureClaim = httpContext.User.Claims.FirstOrDefault(c => c.Type == ConfigClaimPrefix + "culture");
         if (cultureClaim is null)
             return Task.FromResult<ProviderCultureResult?>(new("en"));
 

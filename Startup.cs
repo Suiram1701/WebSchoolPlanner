@@ -15,11 +15,6 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using WebSchoolPlanner.Localization;
 using System.IO.Pipelines;
-using Microsoft.IdentityModel.Tokens;
-using System.Security.Cryptography;
-using System.Security.Cryptography.X509Certificates;
-using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Http.Features.Authentication;
 
 namespace WebSchoolPlanner;
 
@@ -160,8 +155,7 @@ public class Startup
         // Default request pipeline
         app
             .UseHttpsRedirection()
-            .UseStaticFiles()
-            .UseCookiePolicy();
+            .UseStaticFiles();
 
         // Api / Swagger
         app.UseApiVersioning();
@@ -192,8 +186,8 @@ public class Startup
             .UseAuthentication()
             .UseApiAuthorization()
             .UseAuthorization()
-            .UseDatabaseRequestMiddleware()
             .UseLocalization()
+            .UseCookiePolicy()
             .UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }

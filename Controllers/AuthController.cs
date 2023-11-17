@@ -8,8 +8,8 @@ using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Models;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using Humanizer;
-using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Database;
 using System.Net;
+using System.Security.Claims;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -39,6 +39,7 @@ public sealed class AuthController : Controller
     /// A view for login
     /// </summary>
     /// <param name="returnUrl">The url to return after login</param>
+    [HttpGet]
     [AllowAnonymous]
     [Route("login")]
     public IActionResult Login([FromQuery(Name = "r")] string? returnUrl)
@@ -70,7 +71,18 @@ public sealed class AuthController : Controller
                 return View(nameof(Login), model);
             }
 
-            SignInResult result = await _signInManager.PasswordSignInAsync(user, model.Password, model.RememberMe, false);
+            SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
+            if (result.Succeeded || result.RequiresTwoFactor)
+            {
+                // MFA claims
+                IList<Claim> claims = new List<Claim>();
+                claims.Add(new("mfa_enabled", user.TwoFactorEnabled.ToString()));
+                if (user.TwoFactorEnabled)
+                    claims.Add(new("mfa_valid", result.RequiresTwoFactor.ToString()));
+
+                await _signInManager.SignInWithClaimsAsync(user, model.RememberMe, claims);
+            }
+
             if (result.RequiresTwoFactor)     // Redirect to 2FA validation
                 return RedirectToAction(nameof(TFAValidate), new { r = returnUrl });
             else if (result.IsLockedOut)
@@ -101,17 +113,26 @@ public sealed class AuthController : Controller
             // successful
             _logger.LogInformation("Login from IPv4 {0} to user {1}", clientIP, user.Id);
             if (returnUrl is not null)
+            {
+                // Validate redirect URI
+                bool isValid = Uri.TryCreate(returnUrl, default, out Uri? uri);
+                isValid &= !uri?.IsAbsoluteUri ?? false;
+
+                if (!isValid)
+                    return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
                 return Redirect(returnUrl);
+            }
             else
                 return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
         }
 
         // Invalid model state
-        _logger.LogInformation("Invalid model state from IPv4 {0}", clientIP);
+        _logger.LogInformation("Invalid log in model state from IPv4 {0}", clientIP);
         ViewBag.IsInvalidState = true;
         return View(nameof(Login), model);
     }
 
+    [HttpGet]
     [AllowAnonymous]
     [Route("2fa")]
     public IActionResult TFAValidate([FromQuery(Name = "r")] string? returnUrl)
@@ -119,6 +140,7 @@ public sealed class AuthController : Controller
         throw new NotImplementedException();
     }
 
+    [HttpGet]
     [Route("logout")]
     public async Task<IActionResult> Logout()
     {
