@@ -42,6 +42,8 @@ public sealed class AccountController : ControllerBase
     /// Returns the requested settings.
     /// </summary>
     /// <remarks>
+    /// Returns the in the request specified settings from the currently logged in user.
+    /// 
     /// Possible setting names are: "culture" Represents the selected language. Possible values are all by the server supported cultures in the ISO-3166 format; 
     /// "theme": Represents the selected color theme. Possible values are "White", "Dark" or "Auto".
     /// 
@@ -53,7 +55,6 @@ public sealed class AccountController : ControllerBase
     ///     ]
     /// </remarks>
     /// <param name="settingNames">The setting names to return.</param>
-    /// <returns>The names of the settings as key and value as value.</returns>
     [HttpPost]
     [Route("settings")]
     [Consumes(typeof(string[]), "application/json")]
@@ -112,9 +113,11 @@ public sealed class AccountController : ControllerBase
     }
 
     /// <summary>
-    /// Set for the given settings the given value.
+    /// Sets for the specified settings the given value.
     /// </summary>
     /// <remarks>
+    /// Sets for the specified settings a given string value.
+    /// 
     /// Possible setting names are: "culture": Represents the selected language. Possible values are all by the server supported cultures in the ISO-3166 format; 
     /// "theme": Represents the selected color theme. Possible values are "White", "Dark" or "Auto".
     /// 
@@ -229,9 +232,11 @@ public sealed class AccountController : ControllerBase
     /// <summary>
     /// Returns the profile image of the currently logged in account.
     /// </summary>
+    /// <remarks>
+    /// Returns the profile image of the currently logged in user as in the 'Accept' header specified image format.
+    /// </remarks>
     /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp.</param>
-    /// <returns>The image of the account</returns>
-    /// <response code="204">No content: No image was set for the profile.</response>
+    /// <response code="204">No image was set for the profile.</response>
     [HttpGet]
     [Route("image")]
     [ProducesIntegrityHash(StatusCodes.Status200OK)]
@@ -247,11 +252,14 @@ public sealed class AccountController : ControllerBase
     /// <summary>
     /// Returns the profile image of the account with the given id.
     /// </summary>
+    /// <remarks>
+    /// Returns the profile image of the specified user as in the 'Accept' header specified image format.
+    /// </remarks>
     /// <param name="accountId">The id of the account.</param>
     /// <param name="contentTypeHeader">The MIME-Type of the image to return. Possible values are image/png, image/gif, image/jpeg (jpg, jpeg), image/bmp, image/x-portable-bitmap (pbm), image/tga, image/tiff and image/webp.</param>
-    /// <returns>The image of the account with the given id.</returns>
-    /// <response code="204">No content: No image was set for the profile.</response>
+    /// <response code="204">No image was set for the profile.</response>
     [HttpGet]
+    [AllowAnonymous]
     [Route("image/{accountId}")]
     [ProducesIntegrityHash(StatusCodes.Status200OK)]
     [Produces(ImageType, "image/gif", "image/jpeg", "image/bmp", "image/x-portable-bitmap", "image/tga", "image/tiff", "image/webp", Type = typeof(byte[]))]
@@ -341,6 +349,9 @@ public sealed class AccountController : ControllerBase
     /// <summary>
     /// Clears the profile image of the current user.
     /// </summary>
+    /// <remarks>
+    /// This clears the account image of the currently logged in user unrecoverable.
+    /// </remarks>
     [HttpDelete]
     [Route("image")]
     [ProducesResponseType(StatusCodes.Status200OK)]
@@ -358,6 +369,8 @@ public sealed class AccountController : ControllerBase
     /// <param name="imageForm">The image to set</param>
     /// <param name="cropData">The data to crop the image.</param>
     /// <remarks>
+    /// This method sets the account image of the currently logged in user.
+    /// 
     /// A rectangular image is required for the profile picture. When uploading, you can crop the image using the crop part of the form. If this part isn't given, the largest possible image is taken.
     /// 
     /// Sample request:

@@ -34,6 +34,7 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="RevStackCore.Identity.Jwt" Version="2.2.0" />
     <PackageReference Include="SixLabors.ImageSharp" Version="3.0.2" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.5.0" />
   </ItemGroup>
@@ -43,9 +44,6 @@
       <Static>True</Static>
     </Using>
     <Using Include="WebSchoolPlanner.Enums">
-      <Static>True</Static>
-    </Using>
-    <Using Include="WebSchoolPlanner.RegExes">
       <Static>True</Static>
     </Using>
   </ItemGroup>

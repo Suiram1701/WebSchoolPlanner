@@ -15,6 +15,11 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using WebSchoolPlanner.Localization;
 using System.IO.Pipelines;
+using Microsoft.IdentityModel.Tokens;
+using System.Security.Cryptography;
+using System.Security.Cryptography.X509Certificates;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Http.Features.Authentication;
 
 namespace WebSchoolPlanner;
 
@@ -119,8 +124,8 @@ public class Startup
             })
             .ConfigureApplicationCookie(options =>
             {
-                options.LoginPath = "/Auth/Login";
-                options.LogoutPath = "/Auth/Logout";
+                options.LoginPath = "/auth/login";
+                options.LogoutPath = "/auth/logout";
 
                 options.SlidingExpiration = true;
                 options.ReturnUrlParameter = "r";
@@ -136,8 +141,10 @@ public class Startup
             })
             .AddSession();
 
-        services.AddAuthentication();
-        services.AddAuthorization();
+        services
+            .AddAuthentication();
+        services
+            .AddAuthorization();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

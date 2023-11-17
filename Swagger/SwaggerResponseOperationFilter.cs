@@ -146,6 +146,13 @@ public class SwaggerResponseOperationFilter : IOperationFilter
                 }
             }
         });
+
+        // mdn link for response headers
+        foreach ((string _, OpenApiResponse response) in operation.Responses)
+        {
+            foreach ((string name, OpenApiHeader header) in response.Headers.Where(h => SwaggerOperationFilter.IsDefaultHeaderName(h.Key)))
+                header.Description += SwaggerOperationFilter.BuildMdnLink("Headers", name);
+        }
     }
 
     private void SetupSchemas(OperationFilterContext context)
