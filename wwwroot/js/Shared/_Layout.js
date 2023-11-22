@@ -38,7 +38,7 @@ function SetTheme(value, setCookie, setSvg) {
     // Set the svg
     const svgContent = $("button[data-theme='" + value + "'] svg").prop('outerHTML')
     $("#theme-display").html(svgContent);
-};
+}
 
 function LogAjaxError(data) {
     const errorMsg = "Error happend while request. Code: " + data.status + "; Error: " + data.responseText;
