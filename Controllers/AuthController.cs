@@ -10,6 +10,7 @@ using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 using Humanizer;
 using System.Net;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Authentication;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -22,14 +23,16 @@ namespace WebSchoolPlanner.Controllers;
 public sealed class AuthController : Controller
 {
     private readonly ILogger _logger;
+    private readonly IConfiguration _configuration;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
     private readonly CultureInfo _uiCulture;
 
-    public AuthController(ILogger<AuthController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
+    public AuthController(ILogger<AuthController> logger, IConfiguration configuration, SignInManager<User> signInManager, UserManager<User> userManager)
     {
         _logger = logger;
+        _configuration = configuration;
         _signInManager = signInManager;
         _userManager = userManager;
         _uiCulture = Thread.CurrentThread.CurrentUICulture;
@@ -80,7 +83,27 @@ public sealed class AuthController : Controller
                 if (user.TwoFactorEnabled)
                     claims.Add(new("mfa_valid", result.RequiresTwoFactor.ToString()));
 
-                await _signInManager.SignInWithClaimsAsync(user, model.RememberMe, claims);
+                // Determine the login span
+                string configurationSuffix = model.RememberMe
+                    ? "Persistent"
+                    : (Request.Path.StartsWithSegments("/api")
+                        ? "Api"
+                        : "Default"
+                    );
+                string? expiresString = _configuration[AuthenticationConfigurationPrefix + "Expires:" + configurationSuffix];
+                if (!uint.TryParse(expiresString, out uint expiresSeconds))
+                    expiresSeconds = 3600;     // 1 hour
+                TimeSpan loginSpan = TimeSpan.FromSeconds(expiresSeconds);
+
+                // Login
+                AuthenticationProperties properties = new()
+                {
+                    IsPersistent = model.RememberMe,
+                    AllowRefresh = true,
+                    IssuedUtc = DateTimeOffset.UtcNow,
+                    ExpiresUtc = DateTimeOffset.UtcNow.Add(loginSpan)
+                };
+                await _signInManager.SignInWithClaimsAsync(user, properties, claims);
             }
 
             if (result.RequiresTwoFactor)     // Redirect to 2FA validation
@@ -101,7 +124,7 @@ public sealed class AuthController : Controller
             }
             else if (!result.Succeeded)     // Invalid / passwd
             {
-                _logger.LogInformation("User {0} invalid password from IPv4 {1}");
+                _logger.LogInformation("User {0} invalid password from IPv4 {1}", user.Id, clientIP);
                 await _userManager.AccessFailedAsync(user);
                 if (user.AccessFailedCount >= _userManager.Options.Lockout.MaxFailedAccessAttempts)     // Log if the user locked out
                     _logger.LogInformation("User {0} invalid password lockout", user.Id);

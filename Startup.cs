@@ -15,6 +15,9 @@ using Microsoft.EntityFrameworkCore;
 using Swashbuckle.AspNetCore.SwaggerUI;
 using WebSchoolPlanner.Localization;
 using System.IO.Pipelines;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace WebSchoolPlanner;
 
@@ -31,7 +34,7 @@ public class Startup
     {
         // MVC
         services
-            .AddControllersWithViews()
+            .AddMvc()
             .AddViewLocalization(LanguageViewLocationExpanderFormat.Suffix, options => options.ResourcesPath = "Localization");
 
         // Localization
@@ -111,6 +114,7 @@ public class Startup
 
         // Security
         services
+            .AddAuthorization()
             .AddAntiforgery(options =>
             {
                 options.Cookie.Name = ".AspNetCore.CSRF.TOKEN";
@@ -135,11 +139,6 @@ public class Startup
                 options.MinimumSameSitePolicy = SameSiteMode.None;
             })
             .AddSession();
-
-        services
-            .AddAuthentication();
-        services
-            .AddAuthorization();
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
@@ -155,7 +154,8 @@ public class Startup
         // Default request pipeline
         app
             .UseHttpsRedirection()
-            .UseStaticFiles();
+            .UseStaticFiles()
+            .UseCookiePolicy();
 
         // Api / Swagger
         app.UseApiVersioning();
@@ -187,7 +187,6 @@ public class Startup
             .UseApiAuthorization()
             .UseAuthorization()
             .UseLocalization()
-            .UseCookiePolicy()
             .UseEndpoints(endpoints => endpoints.MapControllers());
     }
 }
