@@ -99,7 +99,6 @@ public class Startup
                 string connectionString = _configuration.GetConnectionString("WebSchoolPlannerDbContext")
                     ?? throw new ArgumentNullException(nameof(connectionString), "A connection string for the database 'WebSchoolPlannerDbContext' is required.");
                 options.UseSqlServer(connectionString);
-
             }, ServiceLifetime.Singleton, ServiceLifetime.Transient)
             .AddIdentity<User, Role>(options =>
             {

@@ -14,6 +14,8 @@ using System.Security.Claims;
 using Microsoft.Extensions.Options;
 using Microsoft.AspNetCore.Http.HttpResults;
 using WebSchoolPlanner.Swagger.Attributes;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
+using System.Threading.Tasks;
 
 namespace WebSchoolPlanner.ApiControllers.V1;
 
@@ -138,6 +140,57 @@ public sealed class AccountController : ControllerBase
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> PutSettings([FromBody] Dictionary<string, string> settings, [FromServices] IOptions<RequestLocalizationOptions> localizationOptions)
     {
+        ValidateSettings(settings);
+
+        User user = (await _userManager.GetUserAsync(User))!;
+        IList<Claim> userClaims = await _userManager.GetClaimsAsync(user);
+
+        List<Task<IdentityResult>> claimTasks = new();
+
+        // Add all settings that don't exist
+        IEnumerable<KeyValuePair<string, string>> settingsToAdd = settings
+            .Select(s => new KeyValuePair<string, string>(ConfigClaimPrefix + s.Key, s.Value))
+            .Where(s => !userClaims.Any(c => c.Type == s.Key));
+        if (settingsToAdd.Any())
+        {
+            Task<IdentityResult> task = _userManager.AddClaimsAsync(user, settingsToAdd.Select(s => new Claim(s.Key, s.Value))).ContinueWith<IdentityResult>(CatchSettingsSaveError);
+            claimTasks.Add(task);
+        }
+
+        // Replace the settings that already exists
+        foreach ((string key, string value) in settings
+            .Select(s => new KeyValuePair<string, string>(ConfigClaimPrefix + s.Key, s.Value))
+            .Where(s => userClaims.Any(c => c.Type == s.Key)))
+        {
+            Claim existClaim = userClaims.First(c => c.Type == key);
+
+            Task<IdentityResult> task = _userManager.ReplaceClaimAsync(user, existClaim, new(key, value)).ContinueWith<IdentityResult>(CatchSettingsSaveError);
+            claimTasks.Add(task);
+        }
+
+        IEnumerable<IdentityResult> results = await Task.WhenAll(claimTasks).ConfigureAwait(false);
+        if (results.Any(r => !r.Succeeded))
+            throw new Exception("An occurred error happened while setting account settings");
+
+        // Refresh the sign in token (because some claims are saved inside the token)
+        await _signInManager.RefreshSignInAsync(user);
+
+        return Ok();
+    }
+
+    /// <summary>
+    /// Validate setting keys and values
+    /// </summary>
+    /// <remarks>
+    /// An ArgumentException is thrown when invalid data were found.
+    /// </remarks>
+    /// <param name="settings">The settings to validate</param>
+    /// <exception cref="ArgumentException"></exception>
+    [NonAction]
+    private void ValidateSettings(Dictionary<string, string> settings)
+    {
+        IOptions<RequestLocalizationOptions> localizationOptions = HttpContext.RequestServices.GetService<IOptions<RequestLocalizationOptions>>()!;
+
         // Validate settings
         List<string> notFoundSettings = new();
         List<string> invalidSettings = new();
@@ -175,63 +228,25 @@ public sealed class AccountController : ControllerBase
             string invalidSettingsString = string.Join(", ", invalidSettings);
             throw new ArgumentException(string.Format("Invalid value for {0} was given.", invalidSettingsString), nameof(settings));
         }
+    }
 
-        User user = (await _userManager.GetUserAsync(User))!;
-        IList<Claim> userClaims = await _userManager.GetClaimsAsync(user);
-
-        List<Task<IdentityResult>> claimTasks = new();
-
-        // Add all settings that don't exist
-        IEnumerable<KeyValuePair<string, string>> settingsToAdd = settings
-            .Select(s => new KeyValuePair<string, string>(ConfigClaimPrefix + s.Key, s.Value))
-            .Where(s => !userClaims.Any(c => c.Type == s.Key));
-        if (settingsToAdd.Any())
+    /// <summary>
+    /// If the result isn't successful the error would be logged
+    /// </summary>
+    /// <param name="task">The task of the result</param>
+    [NonAction]
+    private IdentityResult CatchSettingsSaveError(Task<IdentityResult> task)
+    {
+        // Error handling
+        IdentityResult result = task.Result;
+        if (!result.Succeeded)
         {
-            Task<IdentityResult> task = _userManager.AddClaimsAsync(user, settingsToAdd.Select(s => new Claim(s.Key, s.Value))).ContinueWith<IdentityResult>(task =>
-            {
-                // Error handling
-                IdentityResult result = task.Result;
-                if (!result.Succeeded)
-                {
-                    string errorJson = JsonConvert.SerializeObject(result.Errors);
-                    _logger.LogError("An identity error happened while setting account settings of user: {0}; error: {1}", user.Id, errorJson);
-                }
-
-                return result;
-            });
-            claimTasks.Add(task);
+            string userId = _userManager.GetUserId(User)!;
+            string errorJson = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An identity error happened while setting account image of user {0}; error: {1}", userId, errorJson);
         }
 
-        // Replace the settings that already exists
-        foreach ((string key, string value) in settings
-            .Select(s => new KeyValuePair<string, string>(ConfigClaimPrefix + s.Key, s.Value))
-            .Where(s => userClaims.Any(c => c.Type == s.Key)))
-        {
-            Claim existClaim = userClaims.First(c => c.Type == key);
-
-            Task<IdentityResult> task = _userManager.ReplaceClaimAsync(user, existClaim, new(key, value)).ContinueWith<IdentityResult>(task =>
-            {
-                // Error handling
-                IdentityResult result = task.Result;
-                if (!result.Succeeded)
-                {
-                    string errorJson = JsonConvert.SerializeObject(result.Errors);
-                    _logger.LogError("An identity error happened while setting account image of user {0}; setting: {1}; error: {2}", user.Id, key, errorJson);
-                }
-
-                return result;
-            });
-            claimTasks.Add(task);
-        }
-
-        IEnumerable<IdentityResult> results = await Task.WhenAll(claimTasks).ConfigureAwait(false);
-        if (results.Any(r => !r.Succeeded))
-            throw new Exception("An occurred error happened while setting account settings");
-
-        // Refresh the sign in token (because some claims are saved inside the token)
-        await _signInManager.RefreshSignInAsync(user);
-
-        return Ok();
+        return result;
     }
 
     /// <summary>

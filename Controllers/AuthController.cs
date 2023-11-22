@@ -83,19 +83,8 @@ public sealed class AuthController : Controller
                 if (user.TwoFactorEnabled)
                     claims.Add(new("mfa_valid", result.RequiresTwoFactor.ToString()));
 
-                // Determine the login span
-                string configurationSuffix = model.RememberMe
-                    ? "Persistent"
-                    : (Request.Path.StartsWithSegments("/api")
-                        ? "Api"
-                        : "Default"
-                    );
-                string? expiresString = _configuration[AuthenticationConfigurationPrefix + "Expires:" + configurationSuffix];
-                if (!uint.TryParse(expiresString, out uint expiresSeconds))
-                    expiresSeconds = 3600;     // 1 hour
-                TimeSpan loginSpan = TimeSpan.FromSeconds(expiresSeconds);
-
                 // Login
+                TimeSpan loginSpan = DetermineLoginSpan(model.RememberMe);
                 AuthenticationProperties properties = new()
                 {
                     IsPersistent = model.RememberMe,
@@ -153,6 +142,21 @@ public sealed class AuthController : Controller
         _logger.LogInformation("Invalid log in model state from IPv4 {0}", clientIP);
         ViewBag.IsInvalidState = true;
         return View(nameof(Login), model);
+    }
+
+    [NonAction]
+    private TimeSpan DetermineLoginSpan(bool isPersistent)
+    {
+        string configurationSuffix = isPersistent
+                    ? "Persistent"
+                    : (Request.Path.StartsWithSegments("/api")
+                        ? "Api"
+                        : "Default"
+                    );
+        string? expiresString = _configuration[AuthenticationConfigurationPrefix + "Expires:" + configurationSuffix];
+        if (!uint.TryParse(expiresString, out uint expiresSeconds))
+            expiresSeconds = 3600;     // 1 hour
+        return TimeSpan.FromSeconds(expiresSeconds);
     }
 
     [HttpGet]
