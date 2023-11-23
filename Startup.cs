@@ -18,6 +18,8 @@ using System.IO.Pipelines;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using WebSchoolPlanner.Db.Stores;
 
 namespace WebSchoolPlanner;
 
@@ -110,6 +112,7 @@ public class Startup
             })
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders();
+        services.AddSingleton<UserImageStore<User>, UserImageStore<User>>();
 
         // Security
         services

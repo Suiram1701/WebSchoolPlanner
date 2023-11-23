@@ -10,10 +10,9 @@ namespace WebSchoolPlanner.Db.Models;
 public class User : IdentityUser
 {
     /// <summary>
-    /// The profile image
+    /// The account image
     /// </summary>
-    [MaxLength((int)MaxAccountImageSize)]
-    public byte[]? AccountImage { get; set; }
+    public UserImageModel? AccountImage { get; set; }
 
     /// <summary>
     /// A new instance

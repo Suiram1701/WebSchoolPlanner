@@ -16,6 +16,8 @@ using Microsoft.AspNetCore.Http.HttpResults;
 using WebSchoolPlanner.Swagger.Attributes;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System.Threading.Tasks;
+using WebSchoolPlanner.Db.Stores;
+using System.Net;
 
 namespace WebSchoolPlanner.ApiControllers.V1;
 
@@ -31,15 +33,17 @@ public sealed class AccountController : ControllerBase
     private readonly ILogger _logger;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
+    private readonly UserImageStore<User> _userImageStore;
 
     private const string AcceptHeaderName = "Accept";
     private const string ImageType = "image/png";
 
-    public AccountController(ILogger<AccountController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
+    public AccountController(ILogger<AccountController> logger, SignInManager<User> signInManager, UserManager<User> userManager, UserImageStore<User> userImageStore)
     {
         _logger = logger;
         _signInManager = signInManager;
         _userManager = userManager;
+        _userImageStore = userImageStore;
     }
 
     /// <summary>
@@ -291,10 +295,12 @@ public sealed class AccountController : ControllerBase
             throw new FormatException($"The route value '{nameof(accountId)}' must be in the format of a GUID.");
 
         User? user = await _userManager.FindByIdAsync(accountId);
-
         if (user is null)
         {
-            string currentUserId = _userManager.GetUserId(User)!;
+            IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
+            string? currentUserId = _userManager.GetUserId(User);
+            currentUserId ??= clientIP.ToString();
+
             _logger.LogInformation("User {0} requested account image of not exist user {1}", currentUserId, accountId);
 
             throw new ArgumentException("No user with the given accountId could be found.");
@@ -309,7 +315,11 @@ public sealed class AccountController : ControllerBase
         if (user.AccountImage is null)
             return StatusCode(StatusCodes.Status204NoContent);
 
-        using Stream stream = new MemoryStream(user.AccountImage);
+        byte[]? imageContent = await _userImageStore.GetImageAsync(user);
+        if (imageContent is null)
+            return NoContent();
+
+        using Stream stream = new MemoryStream(imageContent);
         using Image image = await Image.LoadAsync(stream);
         MemoryStream memoryStream = new();
         HttpContext.Response.OnCompleted(async() => await memoryStream.DisposeAsync());
@@ -378,7 +388,7 @@ public sealed class AccountController : ControllerBase
     public async Task<IActionResult> DeleteImage()
     {
         User user = (await _userManager.GetUserAsync(User))!;
-        await _userManager.SetProfileImageAsync(user, null);
+        await _userImageStore.RemoveImageAsync(user);
 
         return Ok();
     }
@@ -491,16 +501,8 @@ public sealed class AccountController : ControllerBase
 
         User user = (await _userManager.GetUserAsync(User))!;
         string currentUserId = _userManager.GetUserId(User)!;
-        IdentityResult result = await _userManager.SetProfileImageAsync(user, stream.ToArray());
+        await _userImageStore.AddImageAsync(user, stream.ToArray());
 
-        if (!result.Succeeded)
-        {
-            string errorJson = JsonConvert.SerializeObject(result.Errors);
-            _logger.LogError("An identity error happened while setting account image of user {0}; Error: {1}", currentUserId, errorJson);
-            throw new Exception("An occurred error happened while setting account image");
-        }
-
-        _logger.LogInformation("User {1} updated account image", currentUserId);
         return Ok();
     }
 }

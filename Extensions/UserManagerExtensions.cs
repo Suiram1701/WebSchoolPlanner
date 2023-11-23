@@ -6,7 +6,7 @@ namespace WebSchoolPlanner.Extensions;
 public static class UserManagerExtensions
 {
     /// <summary>
-    /// Update the profile image of the givent user
+    /// Update the profile image of the given user
     /// </summary>
     /// <param name="userManager"></param>
     /// <param name="user">The user</param>
@@ -18,7 +18,7 @@ public static class UserManagerExtensions
         if (content?.Length > MaxAccountImageSize)
             throw new ArgumentException($"The file must be smaller than or same than {MaxAccountImageSize} bytes.");
 
-        user.AccountImage = content;
+        //user.AccountImage = content;
         return await userManager.UpdateAsync(user);
     }
 }

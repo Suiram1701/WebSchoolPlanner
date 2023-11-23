@@ -7,6 +7,8 @@ namespace WebSchoolPlanner.Db;
 
 public class WebSchoolPlannerDbContext : IdentityDbContext<User, Role, string>
 {
+    public DbSet<UserImageModel> UserImages { get; set; }
+
     public WebSchoolPlannerDbContext(DbContextOptions options) : base(options)
     {
     }
@@ -14,5 +16,10 @@ public class WebSchoolPlannerDbContext : IdentityDbContext<User, Role, string>
     protected override void OnModelCreating(ModelBuilder builder)
     {
         base.OnModelCreating(builder);
+
+        builder.Entity<User>()     // Configure user image
+            .OwnsOne(u => u.AccountImage)
+            .WithOwner()
+            .HasForeignKey(r => r.Id);
     }
 }
