@@ -106,4 +106,19 @@
   <data name="security" xml:space="preserve">
     <value>Sicherheit</value>
   </data>
+  <data name="TFA" xml:space="preserve">
+    <value>Zwei-Faktor-Authentifizierung</value>
+  </data>
+  <data name="TFA_Description" xml:space="preserve">
+    <value>Die Zwei-Faktor-Authentifizierung (2FA) erhöht die Sicherheit Ihres Accounts, da neben dem Passwort ein zeitabhängiger Code erforderlich ist. Dieser Code, der nur für kurze Zeit gültig ist, wird durch eine Authentifizierungs-App oder eine Email bereitgestellt.</value>
+  </data>
+  <data name="TFA_App" xml:space="preserve">
+    <value>Authentifizierungs-App</value>
+  </data>
+  <data name="Activate" xml:space="preserve">
+    <value>Aktivieren</value>
+  </data>
+  <data name="Deactivate" xml:space="preserve">
+    <value>Deaktivieren</value>
+  </data>
 </root>
