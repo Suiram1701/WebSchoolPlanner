@@ -13,7 +13,11 @@ public static class Constants
 
     public const string AuthenticationConfigurationPrefix = "Authentication:";
 
+    public const string TotpConfigurationPrefix = AuthenticationConfigurationPrefix + "Totp:";
+
     public const string ConfigClaimPrefix = "config_";
+
+    public const string SecurityClaimPrefix = "security_";
 
     public const long MaxAccountImageSize = 5000000;
 }

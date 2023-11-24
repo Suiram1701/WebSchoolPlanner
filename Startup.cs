@@ -20,6 +20,9 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WebSchoolPlanner.Db.Stores;
+using WebSchoolPlanner.TokenProviders;
+using WebSchoolPlanner.Options;
+using OtpNet;
 
 namespace WebSchoolPlanner;
 
@@ -95,6 +98,7 @@ public class Startup
             services.AddSwagger();
 
         // Database / authentication
+        const string TFATokenProvider = "2FA_Token_Provider";
         services
             .AddDbContext<WebSchoolPlannerDbContext>(options =>
             {
@@ -109,10 +113,70 @@ public class Startup
 
                 options.Lockout.MaxFailedAccessAttempts = maxFailedLoginAttempts;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(lockOutSeconds);
+
+                options.Tokens.AuthenticatorTokenProvider = TFATokenProvider;
             })
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
-            .AddDefaultTokenProviders();
+            .AddDefaultTokenProviders()
+            .AddTokenProvider<UserTwoFactorTokenProvider<User>>(TFATokenProvider);
         services.AddSingleton<UserImageStore<User>, UserImageStore<User>>();
+
+        services.AddOptions<TotpAuthenticationOptions>().Configure(options =>
+        {
+            options.Issuer = _configuration[TotpConfigurationPrefix + "Issuer"] ?? string.Empty;
+
+            string? timeStepString = _configuration[TotpConfigurationPrefix + "Timesteps"];
+            timeStepString ??= 30.ToString();     // 30 seconds by default
+            string? digitsString = _configuration[TotpConfigurationPrefix + "TotpSize"];
+            digitsString ??= 6.ToString();     // 6 digits are displayed in the auth app
+
+            // Validate the value
+            const string parseErrorMessage = "A integer value greater than 0 was expected in the configuration file (configuration path: '{0}')";
+            if (int.TryParse(timeStepString, out int timeSteps))
+            {
+                if (timeSteps <= 0)
+                {
+                    string text = string.Format(parseErrorMessage, TotpConfigurationPrefix + "Timesteps");
+                    throw new ArgumentOutOfRangeException(nameof(timeSteps), text);
+                }
+
+                options.ValidTimeSpan = TimeSpan.FromSeconds(timeSteps);
+            }
+            else
+            {
+                string text = string.Format(parseErrorMessage, TotpConfigurationPrefix + "Timesteps");
+                throw new FormatException(text);
+            }
+
+            // Validate the value
+            if (int.TryParse(digitsString, out int digits))
+            {
+                if (timeSteps <= 0)
+                {
+                    string text = string.Format(parseErrorMessage, TotpConfigurationPrefix + "TotpSize");
+                    throw new ArgumentOutOfRangeException(nameof(timeSteps), text);
+                }
+
+                options.DigitsCount = digits;
+            }
+            else
+            {
+                string text = string.Format(parseErrorMessage, TotpConfigurationPrefix + "TotpSize");
+                throw new FormatException(text);
+            }
+
+            // Determine the algorithm
+            string? algorithmString = _configuration[TotpConfigurationPrefix + "Algorithm"];
+            algorithmString ??= OtpHashMode.Sha1.ToString();
+            if (!Enum.TryParse<OtpHashMode>(algorithmString, out OtpHashMode algorithm))
+            {
+                IEnumerable<string> validAlgorithmNames = Enum.GetValues<OtpHashMode>().Select(ev => ev.ToString());
+                string algorithms = string.Join(", ", validAlgorithmNames);
+
+                string text = "A valid algorithm name is required. Valid names are {0}. (configuration path: '{1}')";
+                throw new FormatException(string.Format(text, algorithms, TotpConfigurationPrefix + "Algorithm"));
+            }
+        });
 
         // Security
         services

@@ -174,7 +174,7 @@ public sealed class AccountController : ControllerBase
 
         IEnumerable<IdentityResult> results = await Task.WhenAll(claimTasks).ConfigureAwait(false);
         if (results.Any(r => !r.Succeeded))
-            throw new Exception("An occurred error happened while setting account settings");
+            throw new Exception("An occurred error happened while setting account settings.");
 
         // Refresh the sign in token (because some claims are saved inside the token)
         await _signInManager.RefreshSignInAsync(user);
