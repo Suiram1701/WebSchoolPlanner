@@ -1,7 +1,48 @@
-﻿@model Enable2faModel;
+﻿@using Microsoft.Extensions.Options
+@using QRCoder;
+@using System.Text
+@using WebSchoolPlanner.Options
+
+@model Enable2faModel;
 
 @inject IViewLocalizer _localizer;
+@inject IOptions<TotpAuthenticationOptions> _options;
 
 @{
     ViewData["Title"] = _localizer["Title"];
+
+    using QRCodeData qrCodeData = (QRCodeData)ViewBag.QRCodeData;
+    SvgQRCode qrCode = new(qrCodeData);
 }
+
+@section Scripts {
+    <script src="~/js/Account/Enable2fa.js"></script>
+}
+
+<div class="text-center">
+    <h3>@_localizer["Title"]</h3>
+
+    <p class="fw-light mt-4">
+        @_localizer["guide"]
+    </p>
+
+    <div class="m-3">
+        @Html.Raw(qrCode.GetGraphic(6))
+    </div>
+
+    <form class="d-flex justify-content-center m-auto" id="codeForm" asp-controller="Account" asp-action="Enable2fa" asp-antiforgery="true">
+
+        <!-- code input -->
+        <div class="form-floating">
+            @{
+                StringBuilder placeHolderBuilder = new();
+                for (int i = 1; i <= _options.Value.DigitsCount; i++)
+                    placeHolderBuilder.Append('X');
+            }
+            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off" required data-digit-count="@_options.Value.DigitsCount" />
+            <label for="codeInput">@_localizer["codeLabel", _options.Value.DigitsCount]</label>
+        </div>
+
+        <input type="hidden" asp-for="EncodedSecret" value="@Model.EncodedSecret" />
+    </form>
+</div>

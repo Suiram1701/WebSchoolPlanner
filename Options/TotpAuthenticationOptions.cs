@@ -22,16 +22,10 @@ public class TotpAuthenticationOptions
     /// </summary>
     public int DigitsCount { get; set; }
 
-    /// <summary>
-    /// The algorithm wich is used by the generation (usually SHA1)
-    /// </summary>
-    public OtpHashMode Algorithm { get; set; }
-
     public TotpAuthenticationOptions()
     {
         Issuer = string.Empty;
         ValidTimeSpan = TimeSpan.FromSeconds(30);
         DigitsCount = 6;
-        Algorithm = OtpHashMode.Sha1;
     }
 }

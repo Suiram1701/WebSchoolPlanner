@@ -164,18 +164,6 @@ public class Startup
                 string text = string.Format(parseErrorMessage, TotpConfigurationPrefix + "TotpSize");
                 throw new FormatException(text);
             }
-
-            // Determine the algorithm
-            string? algorithmString = _configuration[TotpConfigurationPrefix + "Algorithm"];
-            algorithmString ??= OtpHashMode.Sha1.ToString();
-            if (!Enum.TryParse<OtpHashMode>(algorithmString, out OtpHashMode algorithm))
-            {
-                IEnumerable<string> validAlgorithmNames = Enum.GetValues<OtpHashMode>().Select(ev => ev.ToString());
-                string algorithms = string.Join(", ", validAlgorithmNames);
-
-                string text = "A valid algorithm name is required. Valid names are {0}. (configuration path: '{1}')";
-                throw new FormatException(string.Format(text, algorithms, TotpConfigurationPrefix + "Algorithm"));
-            }
         });
 
         // Security
