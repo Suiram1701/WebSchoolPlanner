@@ -23,6 +23,9 @@ using WebSchoolPlanner.Db.Stores;
 using WebSchoolPlanner.TokenProviders;
 using WebSchoolPlanner.Options;
 using OtpNet;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization.Infrastructure;
+using WebSchoolPlanner.Authorization;
 
 namespace WebSchoolPlanner;
 
@@ -168,7 +171,10 @@ public class Startup
 
         // Security
         services
-            .AddAuthorization()
+            .AddAuthorization(options =>
+            {
+                options.DefaultPolicy = new(new List<IAuthorizationRequirement> { new MFAAuthorizationRequirement() }, Enumerable.Empty<string>());
+            })
             .AddAntiforgery(options =>
             {
                 options.Cookie.Name = ".AspNetCore.CSRF.TOKEN";

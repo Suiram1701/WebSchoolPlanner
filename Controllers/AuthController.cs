@@ -11,6 +11,7 @@ using Humanizer;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
+using WebSchoolPlanner.Authorization.Attributes;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -77,11 +78,11 @@ public sealed class AuthController : Controller
             SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
             if (result.Succeeded || result.RequiresTwoFactor)
             {
+                bool isTFAEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
+
                 // MFA claims
                 IList<Claim> claims = new List<Claim>();
-                claims.Add(new("mfa_enabled", user.TwoFactorEnabled.ToString()));
-                if (user.TwoFactorEnabled)
-                    claims.Add(new("mfa_valid", result.RequiresTwoFactor.ToString()));
+                claims.Add(new("mfa_enabled", isTFAEnabled.ToString()));
 
                 // Login
                 TimeSpan loginSpan = DetermineLoginSpan(model.RememberMe);
@@ -96,7 +97,7 @@ public sealed class AuthController : Controller
             }
 
             if (result.RequiresTwoFactor)     // Redirect to 2FA validation
-                return RedirectToAction(nameof(TFAValidate), new { r = returnUrl });
+                return RedirectToAction(nameof(Validate2fa), new { r = returnUrl });
             else if (result.IsLockedOut)
             {
                 DateTimeOffset? lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
@@ -160,9 +161,17 @@ public sealed class AuthController : Controller
     }
 
     [HttpGet]
-    [AllowAnonymous]
+    [AllowWithoutMfa]
     [Route("2fa")]
-    public IActionResult TFAValidate([FromQuery(Name = "r")] string? returnUrl)
+    public IActionResult Validate2fa([FromQuery(Name = "r")] string? returnUrl)
+    {
+        throw new NotImplementedException();
+    }
+
+    [HttpPost]
+    [AllowWithoutMfa]
+    [Route("2fa")]
+    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, object? model)
     {
         throw new NotImplementedException();
     }
