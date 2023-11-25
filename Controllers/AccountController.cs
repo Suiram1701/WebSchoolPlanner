@@ -85,7 +85,7 @@ public sealed class AccountController : Controller
 
                 // Successful
                 _logger.LogInformation("2fa feature for user {0} enabled", user.Id);
-                return RedirectToAction("Index", "Account");
+                return RedirectToAction("Index", "Account", "security");
             }
             else
             {
