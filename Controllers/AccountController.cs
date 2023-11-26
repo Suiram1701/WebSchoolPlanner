@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OtpNet;
 using QRCoder;
+using System.Security.Claims;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
 using WebSchoolPlanner.Models;
@@ -13,6 +14,7 @@ using WebSchoolPlanner.Options;
 using static QRCoder.PayloadGenerator;
 using static QRCoder.PayloadGenerator.OneTimePassword;
 using static QRCoder.QRCodeGenerator;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -83,6 +85,13 @@ public sealed class AccountController : Controller
                 IdentityResult setEnabledResult = await _userManager.SetTwoFactorEnabledAsync(user, true);
                 HandleIdentityResult(setEnabledResult);
 
+                // Add the 2fa login claims to the current session
+                Claim persistentClaim = User.FindFirst("isPersistent")!;
+                bool isPersistent = bool.Parse(persistentClaim.Value);
+
+                string tokenProvider = _signInManager.Options.Tokens.AuthenticatorTokenProvider;
+                await _signInManager.TwoFactorSignInAsync(tokenProvider, model.Code, isPersistent, model.RememberMe);
+
                 // Successful
                 _logger.LogInformation("2fa feature for user {0} enabled", user.Id);
                 return RedirectToAction("Index", "Account", "security");
@@ -92,13 +101,13 @@ public sealed class AccountController : Controller
                 // Invalid enable code
                 Create2faQRCode(user, secret);
                 ViewBag.IsInvalid = true;
+                model.Code = string.Empty;
                 return View(model);
             }
         }
 
         // Invalid model state
         _logger.LogInformation("Invalid enable 2fa model state from user {0}", user.Id);
-        ViewBag.IsInvalidState = true;
         throw new ArgumentException("The request model state is invalid", nameof(model));
     }
 
@@ -140,8 +149,8 @@ public sealed class AccountController : Controller
             return;
 
         string errorJson = JsonConvert.SerializeObject(result.Errors);
-        _logger.LogError("An identity setSecretResult happened while enable 2fa of user {0}; setSecretResult: {1}", _userManager.GetUserId(User), errorJson);
-        throw new Exception("An occurred setSecretResult happened while setting account settings.");
+        _logger.LogError("An identity error happened while enable 2fa of user {0}; error: {1}", _userManager.GetUserId(User), errorJson);
+        throw new Exception("An occurred error happened while setting account settings.");
     }
 
     [HttpGet]

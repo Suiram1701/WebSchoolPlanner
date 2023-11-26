@@ -15,6 +15,10 @@
     SvgQRCode qrCode = new(qrCodeData);
 }
 
+@section Stylesheets {
+    <link rel="stylesheet" type="text/css" href="~/css/Account/Enable2fa.css" />
+}
+
 @section Scripts {
     <script src="~/js/Account/Enable2fa.js"></script>
 }
@@ -30,17 +34,30 @@
         @Html.Raw(qrCode.GetGraphic(6))
     </div>
 
-    <form class="d-flex justify-content-center m-auto" id="codeForm" asp-controller="Account" asp-action="Enable2fa" asp-antiforgery="true">
+    <form class="d-flex flex-column justify-content-center @{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}" id="codeForm" asp-controller="Account" asp-action="Enable2fa" asp-antiforgery="true">
 
         <!-- code input -->
-        <div class="form-floating">
+        <div class="form-floating m-auto">
             @{
                 StringBuilder placeHolderBuilder = new();
                 for (int i = 1; i <= _options.Value.DigitsCount; i++)
                     placeHolderBuilder.Append('X');
             }
-            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off" required data-digit-count="@_options.Value.DigitsCount" />
+            <input type="text" class="form-control px-5" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off" required data-digit-count="@_options.Value.DigitsCount" />
             <label for="codeInput">@_localizer["codeLabel", _options.Value.DigitsCount]</label>
+        </div>
+
+        @if (ViewBag.IsInvalid == true)
+        {
+            <div class="invalid-feedback d-block">
+                @_localizer["Invalid"]
+            </div>
+        }
+
+        <!-- Remember browser -->
+        <div class="checkbox mt-3">
+            <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
+            <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
         </div>
 
         <input type="hidden" asp-for="EncodedSecret" value="@Model.EncodedSecret" />

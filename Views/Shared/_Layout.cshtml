@@ -1,6 +1,7 @@
 ﻿@using Microsoft.Extensions.Options;
 @using Newtonsoft.Json;
 @using System.Text
+@using WebSchoolPlanner.Authorization
 
 @inject IViewLocalizer _localizer;
 @inject UserManager<User> _userManager;
@@ -9,7 +10,7 @@
 @inject IOptions<RequestLocalizationOptions> _localizationOptions;
 
 @{
-    bool isSignIn = _signInManager.IsSignedIn(User);
+    bool isSignIn = MFAAuthorizationRequirement.Handle(Context);
 }
 
 <!DOCTYPE html>

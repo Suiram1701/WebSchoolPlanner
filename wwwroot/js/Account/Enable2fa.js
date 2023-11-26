@@ -10,4 +10,15 @@ $().ready(function () {
             $("form[id='codeForm']").submit();
         }
     });
+
+    // Remove inavlid mark on input
+    let form = $("form");
+    if (!form.hasClass("form-invalid"))     // Use only when input invalid
+        return;
+
+    $("input[type='text']").each(function () {
+        $(this).on("input", function () {
+            form.removeClass("form-invalid");
+        });
+    });
 });

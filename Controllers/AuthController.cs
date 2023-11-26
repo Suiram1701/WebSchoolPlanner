@@ -75,14 +75,17 @@ public sealed class AuthController : Controller
                 return View(nameof(Login), model);
             }
 
+            bool is2faEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
+            bool is2faRequired = !await _signInManager.IsTwoFactorClientRememberedAsync(user) && is2faEnabled;
             SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-            if (result.Succeeded || result.RequiresTwoFactor)
+            if (result.Succeeded || is2faRequired)
             {
                 bool isTFAEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
 
-                // MFA claims
+                // additional claims
                 IList<Claim> claims = new List<Claim>();
-                claims.Add(new("mfa_enabled", isTFAEnabled.ToString()));
+                claims.Add(new("mfa_enabled", is2faEnabled.ToString()));
+                claims.Add(new("isPersistent", model.RememberMe.ToString()));
 
                 // Login
                 TimeSpan loginSpan = DetermineLoginSpan(model.RememberMe);
@@ -96,7 +99,7 @@ public sealed class AuthController : Controller
                 await _signInManager.SignInWithClaimsAsync(user, properties, claims);
             }
 
-            if (result.RequiresTwoFactor)     // Redirect to 2FA validation
+            if (is2faRequired)     // Redirect to 2FA validation
                 return RedirectToAction(nameof(Validate2fa), new { r = returnUrl });
             else if (result.IsLockedOut)
             {
