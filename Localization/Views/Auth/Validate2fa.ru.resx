@@ -113,12 +113,18 @@
     <value>Во время запроса произошла ошибка.</value>
   </data>
   <data name="RememberMeLabel" xml:space="preserve">
-    <value>Запомните этот браузер для дальнейших входов в систему с помощью 2FA.</value>
+    <value>Запомните этот браузер для дальнейших входов в систему с помощью 2FA</value>
   </data>
   <data name="Submit" xml:space="preserve">
     <value>Войти</value>
   </data>
   <data name="UserLocked" xml:space="preserve">
     <value>На данный момент пользователь заблокирован. Пожалуйста, повторите попытку {0}.</value>
+  </data>
+  <data name="confirmation" xml:space="preserve">
+    <value>Вы пытаетесь изменить настройки безопасности вашей учетной записи. Введите код, указанный в вашем приложении 2FA, чтобы подтвердить действие.</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Подтверждать</value>
   </data>
 </root>

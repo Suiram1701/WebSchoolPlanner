@@ -15,6 +15,7 @@ using System.Runtime.CompilerServices;
 using WebSchoolPlanner.Extensions;
 using WebSchoolPlanner.Authorization;
 using Microsoft.AspNetCore.Http.Features;
+using Newtonsoft.Json;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -30,6 +31,11 @@ public sealed class AuthController : Controller
     private readonly IConfiguration _configuration;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
+
+    private readonly IEnumerable<string> _2faReasons = new[]
+    {
+        "disable2fa"
+    };
 
     public AuthController(ILogger<AuthController> logger, IConfiguration configuration, SignInManager<User> signInManager, UserManager<User> userManager)
     {
@@ -147,13 +153,18 @@ public sealed class AuthController : Controller
     [HttpGet]
     [AllowAnonymous]
     [Route("2fa")]
-    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl)
+    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromQuery(Name = "y")] string? reason)
     {
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
         user ??= await _userManager.GetUserAsync(User);
 
-        if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
-            return result;
+        if (!_2faReasons.Contains(reason))     // Check only the 2fa conditions if it isn't a confirmation request
+        {
+            if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
+                return result;
+        }
+        else
+            ViewBag.ConfirmationReason = reason;
 
         ViewBag.ReturnUrl = returnUrl;
         return View();
@@ -163,17 +174,37 @@ public sealed class AuthController : Controller
     [AllowAnonymous]
     [Route("2fa")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] Validate2faModel model)
+    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromQuery(Name = "y")] string? reason, [FromForm] Validate2faModel model)
     {
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-        if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
-            return result;
+        user ??= await _userManager.GetUserAsync(User);
 
-        IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
+        ViewBag.ConfirmationReason = reason;
         if (ModelState.IsValid)
         {
+            // Handles the reason of a 2fa confirmation
+            if (!string.IsNullOrEmpty(reason))
+            {
+                string tokenProvider = _userManager.Options.Tokens.AuthenticatorTokenProvider;
+                bool verifyResult = await _userManager.VerifyTwoFactorTokenAsync(user!, tokenProvider, model.Code);
+                if (verifyResult)     // Success
+                {
+                    await Handle2faConfirmationRequest(user!, reason);
+                    _logger.LogInformation("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
+                    return ReturnRequestedUrl(returnUrl);
+                }
+
+                // Confirmation failed
+                _logger.LogInformation("2fa confirmation for reason '{1}' failed for user {0}", user!.Id, reason);
+                ViewBag.IsLoginFailed = true;
+                return View();
+            }
+
+            if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
+                return result;
+
             SignInResult signInResult = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, false, model.RememberMe);
-            if (signInResult.Succeeded)
+            if (signInResult.Succeeded)     // Success
             {
                 _logger.LogInformation("2fa login from user {0}", user!.Id);
                 return ReturnRequestedUrl(returnUrl);
@@ -191,6 +222,39 @@ public sealed class AuthController : Controller
         _logger.LogInformation("Invalid 2fa login model state from user {0}", user!.Id);
         ViewBag.IsInvalidState = true;
         return View();
+    }
+
+    /// <summary>
+    /// Handles the reason of a 2fa confirmation request
+    /// </summary>
+    /// <param name="user">The user</param>
+    /// <param name="reason">The reason</param>
+    /// <returns>The task</returns>
+    [NonAction]
+    private async Task Handle2faConfirmationRequest(User user, string reason)
+    {
+        IdentityResult result;
+        switch (reason)
+        {
+            case "disable2fa":     // Disable 2fa feature and remove the totp secret
+                result = await _userManager.SetTwoFactorEnabledAsync(user, false);
+                if (!result.Succeeded)
+                    break;
+
+                result = await _userManager.RemoveTwoFactorSecretAsync(user);
+                _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
+                break;
+            default:
+                throw new ArgumentException("The specified confirmation reason could not be found.", nameof(reason));
+        }
+
+        // If the execution wasn't successful log it and throw an exception
+        if (!result.Succeeded)
+        {
+            string errorJson = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An occurred error happend while executing 2fa confirmation reason '{1}'; User: {0}; Error: {2}", user.Id, reason, errorJson);
+            throw new Exception(string.Format("An occurred error happend while executing 2fa confirmation reason '{0}'", reason));
+        }
     }
 
     /// <summary>

@@ -79,7 +79,7 @@ public sealed class AccountController : Controller
             Totp otp = new(secret, timesteps, OtpHashMode.Sha1, options.Value.DigitsCount);
             if (otp.VerifyTotp(model.Code, out _))
             {
-                IdentityResult setSecretResult = await _userManager.SetTwoFactorSecretAsync(user, secret);
+                IdentityResult setSecretResult = await _userManager.UpdateTwoFactorSecretAsync(user, secret);
                 HandleIdentityResult(setSecretResult);
 
                 IdentityResult setEnabledResult = await _userManager.SetTwoFactorEnabledAsync(user, true);

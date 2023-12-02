@@ -121,4 +121,10 @@
   <data name="UserLocked" xml:space="preserve">
     <value>L'utilisateur est actuellement bloqué. Veuillez réessayer {0}.</value>
   </data>
+  <data name="confirmation" xml:space="preserve">
+    <value>Vous essayez de modifier un paramètre concernant la sécurité de votre compte. Veuillez saisir le code affiché dans votre application 2FA pour confirmer l'action.</value>
+  </data>
+  <data name="Confirm" xml:space="preserve">
+    <value>Confirmer</value>
+  </data>
 </root>

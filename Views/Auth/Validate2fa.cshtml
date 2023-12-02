@@ -10,21 +10,38 @@
 
 @{
     ViewData["Title"] = _localizer["Title"];
+
+    string? confirmationReason = ViewBag.ConfirmationReason as string;
 }
 
 @section Stylesheets {
     <link rel="stylesheet" type="text/css" href="~/css/Auth/Validate2fa.css" />
 }
 
-<div id="form-div" class="text-center d-flex flex-column justify-content-center w-100 m-auto form-validate @{if (ViewBag.IsLoginFailed ?? false) {<text>form-invalid</text>}}">
+@section Scripts {
+    <script src="~/js/Auth/Validate2fa.js"></script>
+}
+
+<div class="text-center d-flex flex-column justify-content-center w-100 m-auto form-validate">
 
     <h1 class="h3 mb-3 fw-normal">@_localizer["Title"]</h1>
     <img src="~/img/phone_iphone.svg" height="52"/>
-    <p class="fw-light">
-        @_localizer["2faSignIn"]
-    </p>
 
-    <form class="@{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}" id="signin-form" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@ViewBag.ReturnUrl" asp-antiforgery="true">
+    @if (!string.IsNullOrEmpty(confirmationReason))
+    {
+        <p class="fw-light my-2">
+            @_localizer["confirmation"]
+        </p>
+    }
+    else
+    {
+        <p class="fw-light">
+            @_localizer["2faSignIn"]
+        </p>
+    }
+
+    <form id="codeForm" class="@{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}" id="signin-form"
+        asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@ViewBag.ReturnUrl" asp-route-y="@ViewBag.ConfirmationReason" asp-antiforgery="true">
 
         <!-- code input -->
         <div class="form-floating">
@@ -33,7 +50,7 @@
                 for (int i = 1; i <= _options.Value.DigitsCount; i++)
                     placeHolderBuilder.Append('X');
             }
-            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="" autocomplete="off" required />
+            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off" required data-digit-count="@_options.Value.DigitsCount" />
             <label for="codeInput">@_localizer["codeLabel", _options.Value.DigitsCount]</label>
         </div>
 
@@ -56,13 +73,22 @@
             </div>
         }
 
-        <!-- Remember browser -->
-        <div class="checkbox mt-2">
-            <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
-            <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
-        </div>
+        @* Show the remember me field only when it isn't a confirmation request *@
+        @if (string.IsNullOrEmpty(confirmationReason))
+        {
+            <!-- Remember browser -->
+            <div class="checkbox mt-2">
+                <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
+                <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
+            </div>
+        }
 
         <!-- Submit -->
-        <button class="w-100 mt-3 btn btn-lg btn-primary" id="form-submit" type="submit">@_localizer["Submit"]</button>
+        <button class="w-100 mt-3 btn btn-lg btn-primary" id="form-submit" type="submit">
+            @if (!string.IsNullOrEmpty(confirmationReason))
+                @_localizer["Confirm"]
+            else
+                @_localizer["Submit"]
+        </button>
     </form>
 </div>
