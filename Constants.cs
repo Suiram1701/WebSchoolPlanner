@@ -11,7 +11,9 @@ public static class Constants
 
     public const string SwaggerConfigurationPrefix = "Swagger:";
 
-    public const string TotpConfigurationPrefix = "Totp:";
+    public const string AuthenticationConfigurationPrefix = "Authentication:";
+
+    public const string TotpConfigurationPrefix = AuthenticationConfigurationPrefix + "Totp:";
 
     public const string ConfigClaimPrefix = "config_";
 

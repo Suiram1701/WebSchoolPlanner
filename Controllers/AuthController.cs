@@ -11,10 +11,10 @@ using Humanizer;
 using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
-using WebSchoolPlanner.Authorization.Attributes;
 using System.Runtime.CompilerServices;
 using WebSchoolPlanner.Extensions;
 using WebSchoolPlanner.Authorization;
+using Microsoft.AspNetCore.Http.Features;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -48,6 +48,9 @@ public sealed class AuthController : Controller
     [Route("login")]
     public IActionResult Login([FromQuery(Name = "r")] string? returnUrl)
     {
+        if (_signInManager.IsSignedIn(User))
+            return ReturnRequestedUrl(returnUrl);
+
         ViewBag.ReturnUrl = returnUrl;
         return View();
     }
@@ -66,6 +69,9 @@ public sealed class AuthController : Controller
         IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
         ViewBag.ReturnUrl = returnUrl;
 
+        if (_signInManager.IsSignedIn(User))     // Already signed in
+            return ReturnRequestedUrl(returnUrl);
+
         if (ModelState.IsValid)
         {
             // Check if the user exists
@@ -75,7 +81,7 @@ public sealed class AuthController : Controller
                 return View(nameof(Login), model);
             }
 
-            // Check the users 2fa settings
+            // Sign in
             SignInResult result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
             if (result.RequiresTwoFactor)     // Redirect to 2FA validation
                 return RedirectToAction(nameof(Validate2fa), new { r = returnUrl });
@@ -139,43 +145,63 @@ public sealed class AuthController : Controller
     }
 
     [HttpGet]
-    [AllowWithoutMfa]
+    [AllowAnonymous]
     [Route("2fa")]
     public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl)
     {
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
         user ??= await _userManager.GetUserAsync(User);
 
-        // Not authenticated user
-        if (user is null)
-        {
-            await HttpContext.ChallengeAsync();
-            return StatusCode(Response.StatusCode);
-        }
-
-        // Forbid if 2fa not enabled
-        if (!await _signInManager.IsTwoFactorEnabledAsync(user))
-        {
-            await HttpContext.ForbidAsync();
-            return StatusCode(Response.StatusCode);
-        }
-
-        if (MfaAuthorizationRequirement.Handle(HttpContext))     // Already 2fa signed in
-            return ReturnRequestedUrl(returnUrl);
+        if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
+            return result;
 
         ViewBag.ReturnUrl = returnUrl;
         return View();
     }
 
     [HttpPost]
-    [AllowWithoutMfa]
+    [AllowAnonymous]
     [Route("2fa")]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] Validate2faModel model)
     {
-        IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+        if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
+            return result;
 
+        IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
+        if (ModelState.IsValid)
+        {
+            SignInResult signInResult = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, false, model.RememberMe);
+            if (signInResult.Succeeded)
+            {
+                _logger.LogInformation("2fa login from user {0}", user!.Id);
+                return ReturnRequestedUrl(returnUrl);
+            }
+            else if (signInResult.IsLockedOut)
+                return (await LockOutIfNecessaryAsync(user!, model))!;
+            else     // General failed
+            {
+                _logger.LogInformation("2fa login failed from user {0}", user!.Id);
+                ViewBag.IsLoginFailed = true;
+                return View(model);
+            }
+        }
+
+        _logger.LogInformation("Invalid 2fa login model state from user {0}", user!.Id);
+        ViewBag.IsInvalidState = true;
+        return View();
+    }
+
+    /// <summary>
+    /// Checks the conditions to validate users 2fa
+    /// </summary>
+    /// <param name="user">The user to validate</param>
+    /// <param name="returnUrl">The url where the request wasn't to return after a successfully validation</param>
+    /// <returns>The result. <see langword="null"/> if the check was successful</returns>
+    [NonAction]
+    private async Task<IActionResult?> CheckMfaConditions(User? user, string? returnUrl)
+    {
         // Not authenticated user
         if (user is null)
         {
@@ -190,30 +216,10 @@ public sealed class AuthController : Controller
             return StatusCode(Response.StatusCode);
         }
 
-        if (MfaAuthorizationRequirement.Handle(HttpContext))     // Already 2fa signed in
+        if (_signInManager.IsSignedIn(User))     // Already 2fa signed in
             return ReturnRequestedUrl(returnUrl);
 
-        if (ModelState.IsValid)
-        {
-            SignInResult result = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, false, model.RememberMe);
-            if (result.Succeeded)
-            {
-                _logger.LogInformation("2fa login from user {0}", user.Id);
-                return ReturnRequestedUrl(returnUrl);
-            }
-            else if (result.IsLockedOut)
-                return (await LockOutIfNecessaryAsync(user, model))!;
-            else     // General failed
-            {
-                _logger.LogInformation("2fa login failed from user {0}", user.Id);
-                ViewBag.IsLoginFailed = true;
-                return View(model);
-            }
-        }
-
-        _logger.LogInformation("Invalid 2fa login model state from user {0}", user.Id);
-        ViewBag.IsInvalidState = true;
-        return View();
+        return null;
     }
 
     /// <summary>
@@ -236,12 +242,21 @@ public sealed class AuthController : Controller
     }
 
     [HttpGet]
-    [AllowWithoutMfa]
+    [AllowAnonymous]
     [Route("logout")]
     public async Task<IActionResult> Logout()
     {
-        _logger.LogInformation("User {0} logout", _userManager.GetUserId(User));
-        await _signInManager.SignOutAsync();
-        return RedirectToAction("Login");
+        if (_signInManager.IsSignedIn(User))     // Normal sign out
+        {
+            await _signInManager.SignOutAsync();
+            _logger.LogInformation("User {0} logout", _userManager.GetUserId(User));
+            return RedirectToAction(nameof(Login));
+        }
+
+        AuthenticateResult mfaIdResult = await HttpContext.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme);
+        if (mfaIdResult.Succeeded)
+            await HttpContext.SignOutAsync(IdentityConstants.TwoFactorUserIdScheme);
+
+        return RedirectToAction(nameof(Login));
     }
 }
