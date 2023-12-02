@@ -98,7 +98,7 @@
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
   <data name="Login" xml:space="preserve">
-    <value>Register</value>
+    <value>Sign in</value>
   </data>
   <data name="UsernameLabel" xml:space="preserve">
     <value>Username</value>
