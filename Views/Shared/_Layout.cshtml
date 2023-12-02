@@ -10,7 +10,7 @@
 @inject IOptions<RequestLocalizationOptions> _localizationOptions;
 
 @{
-    bool isSignIn = MFAAuthorizationRequirement.Handle(Context);
+    bool isSignIn = MfaAuthorizationRequirement.Handle(Context);
 }
 
 <!DOCTYPE html>

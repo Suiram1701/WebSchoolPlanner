@@ -42,7 +42,7 @@
         else if (ViewBag.LockOutEnd is DateTimeOffset dateTimeOffset)
         {
             <div class="invalid-feedback d-block">
-                @_localizer["UserLocked", dateTimeOffset.Humanize(culture: (CultureInfo)ViewBag.Culture)]
+                @_localizer["UserLocked", dateTimeOffset.Humanize()]
             </div>
         }
         else if (ViewBag.IsNotAllowed ?? false)
@@ -58,13 +58,7 @@
             </div>
         }
 
-        <!-- Remember browser -->
-        <div class="checkbox mb-3">
-            <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
-            <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
-        </div>
-
         <!-- Submit -->
-        <button class="w-100 btn btn-lg btn-primary" id="form-submit" type="submit">@_localizer["Login"]</button>
+        <button class="w-100 mt-3 btn btn-lg btn-primary" id="form-submit" type="submit">@_localizer["Login"]</button>
     </form>
 </div>

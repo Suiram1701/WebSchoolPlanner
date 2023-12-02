@@ -106,9 +106,6 @@
   <data name="PasswdLabel" xml:space="preserve">
     <value>contraseña</value>
   </data>
-  <data name="RememberMeLabel" xml:space="preserve">
-    <value>permanecer registrado</value>
-  </data>
   <data name="PlsSignIn" xml:space="preserve">
     <value>por favor Iniciar sesión</value>
   </data>

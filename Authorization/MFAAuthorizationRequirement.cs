@@ -8,9 +8,9 @@ namespace WebSchoolPlanner.Authorization;
 /// <summary>
 /// A requirement that validate if the login is 2fa confirmed
 /// </summary>
-public class MFAAuthorizationRequirement : AuthorizationHandler<MFAAuthorizationRequirement>, IAuthorizationRequirement
+public class MfaAuthorizationRequirement : AuthorizationHandler<MfaAuthorizationRequirement>, IAuthorizationRequirement
 {
-    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, MFAAuthorizationRequirement requirement)
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context, MfaAuthorizationRequirement requirement)
     {
         ArgumentNullException.ThrowIfNull(context, nameof(context));
         ArgumentNullException.ThrowIfNull(requirement, nameof(requirement));
@@ -51,8 +51,8 @@ public class MFAAuthorizationRequirement : AuthorizationHandler<MFAAuthorization
     {
         ArgumentNullException.ThrowIfNull(httpContext, nameof(httpContext));
 
-        Claim? enabledClaim = httpContext.User.Claims.FirstOrDefault(c => c.Type == "mfa_enabled");
-        Claim? amrClaim = httpContext.User.Claims.FirstOrDefault(c => c.Type == "amr");
+        Claim? enabledClaim = httpContext.User.FindFirst("mfa_enabled");
+        Claim? amrClaim = httpContext.User.FindFirst("amr");
 
         if (enabledClaim?.Value == false.ToString())     // Not enabled
             return true;

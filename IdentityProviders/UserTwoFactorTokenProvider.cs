@@ -7,7 +7,7 @@ using System.Security.Cryptography;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Options;
 
-namespace WebSchoolPlanner.TokenProviders;
+namespace WebSchoolPlanner.IdentityProviders;
 
 /// <summary>
 /// The default implementation of <see cref="IUserTwoFactorTokenProvider{TUser}"/> using <see cref="Totp"/>

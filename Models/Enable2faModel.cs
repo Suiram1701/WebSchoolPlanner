@@ -12,6 +12,11 @@ public class Enable2faModel
     /// </summary>
     public string EncodedSecret { get; set; }
 
+    /// <summary>
+    /// Should the client remembered
+    /// </summary>
+    public bool RememberMe { get; set; }
+
     public Enable2faModel()
     {
         Code = string.Empty;

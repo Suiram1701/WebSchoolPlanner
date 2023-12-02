@@ -12,6 +12,9 @@ using System.Net;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Authentication;
 using WebSchoolPlanner.Authorization.Attributes;
+using System.Runtime.CompilerServices;
+using WebSchoolPlanner.Extensions;
+using WebSchoolPlanner.Authorization;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -28,15 +31,12 @@ public sealed class AuthController : Controller
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
-    private readonly CultureInfo _uiCulture;
-
     public AuthController(ILogger<AuthController> logger, IConfiguration configuration, SignInManager<User> signInManager, UserManager<User> userManager)
     {
         _logger = logger;
         _configuration = configuration;
         _signInManager = signInManager;
         _userManager = userManager;
-        _uiCulture = Thread.CurrentThread.CurrentUICulture;
     }
 
     /// <summary>
@@ -66,7 +66,7 @@ public sealed class AuthController : Controller
         IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
         ViewBag.ReturnUrl = returnUrl;
 
-        if (ModelState.IsValid && model is not null)
+        if (ModelState.IsValid)
         {
             // Check if the user exists
             if (await _userManager.FindByNameAsync(model.Username) is not User user)
@@ -75,45 +75,20 @@ public sealed class AuthController : Controller
                 return View(nameof(Login), model);
             }
 
-            bool is2faEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
-            bool is2faRequired = !await _signInManager.IsTwoFactorClientRememberedAsync(user) && is2faEnabled;
-            SignInResult result = await _signInManager.CheckPasswordSignInAsync(user, model.Password, false);
-            if (result.Succeeded || is2faRequired)
-            {
-                bool isTFAEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
-
-                // additional claims
-                IList<Claim> claims = new List<Claim>();
-                claims.Add(new("mfa_enabled", is2faEnabled.ToString()));
-                claims.Add(new("isPersistent", model.RememberMe.ToString()));
-
-                // Login
-                TimeSpan loginSpan = DetermineLoginSpan(model.RememberMe);
-                AuthenticationProperties properties = new()
-                {
-                    IsPersistent = model.RememberMe,
-                    AllowRefresh = true,
-                    IssuedUtc = DateTimeOffset.UtcNow,
-                    ExpiresUtc = DateTimeOffset.UtcNow.Add(loginSpan)
-                };
-                await _signInManager.SignInWithClaimsAsync(user, properties, claims);
-            }
-
-            if (is2faRequired)     // Redirect to 2FA validation
+            // Check the users 2fa settings
+            SignInResult result = await _signInManager.PasswordSignInAsync(user, model.Password, false, false);
+            if (result.RequiresTwoFactor)     // Redirect to 2FA validation
                 return RedirectToAction(nameof(Validate2fa), new { r = returnUrl });
             else if (result.IsLockedOut)
             {
-                DateTimeOffset? lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
-                if (lockoutEnd?.DateTime > DateTime.UtcNow)
-                {
-                    ViewBag.LockOutEnd = lockoutEnd;
-                    return View(nameof(Login), model);     // Display lockout msg
-                }
+                IActionResult? lockOutResult = await LockOutIfNecessaryAsync(user, model);
+                if (lockOutResult is not null)
+                    return lockOutResult;
             }
             else if (result.IsNotAllowed)
             {
                 ViewBag.IsNotAllowed = true;
-                return View(nameof(Login), model);
+                return View(model);
             }
             else if (!result.Succeeded)     // Invalid / passwd
             {
@@ -123,63 +98,145 @@ public sealed class AuthController : Controller
                     _logger.LogInformation("User {0} invalid password lockout", user.Id);
 
                 ViewBag.IsLoginFailed = true;
-                return View(nameof(Login), model);
+                IActionResult? lockOutResult = await LockOutIfNecessaryAsync(user, model);
+                if (lockOutResult is not null)
+                    return lockOutResult;
+                return View(model);
             }
 
             // successful
             _logger.LogInformation("Login from IPv4 {0} to user {1}", clientIP, user.Id);
-            if (returnUrl is not null)
-            {
-                // Validate redirect URI
-                bool isValid = Uri.TryCreate(returnUrl, default, out Uri? uri);
-                isValid &= !uri?.IsAbsoluteUri ?? false;
-
-                if (!isValid)
-                    return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
-                return Redirect(returnUrl);
-            }
-            else
-                return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
+            return ReturnRequestedUrl(returnUrl);
         }
 
         // Invalid model state
-        _logger.LogInformation("Invalid log in model state from IPv4 {0}", clientIP);
+        _logger.LogInformation("Invalid login model state from IPv4 {0}", clientIP);
         ViewBag.IsInvalidState = true;
         return View(nameof(Login), model);
     }
 
+    /// <summary>
+    /// Returns a actionResult for a view that contains the lock out end date
+    /// </summary>
+    /// <param name="user">The user to check</param>
+    /// <param name="model">The model to return to the view</param>
+    /// <param name="viewName">The name of the view to return (Not not use!)</param>
+    /// <returns><see langword="null"/> if no lock out is necessary</returns>
     [NonAction]
-    private TimeSpan DetermineLoginSpan(bool isPersistent)
+    private async Task<IActionResult?> LockOutIfNecessaryAsync(User user, object? model, [CallerMemberName] string? viewName = "")
     {
-        string configurationSuffix = isPersistent
-                    ? "Persistent"
-                    : (Request.Path.StartsWithSegments("/api")
-                        ? "Api"
-                        : "Default"
-                    );
-        string? expiresString = _configuration[AuthenticationConfigurationPrefix + "Expires:" + configurationSuffix];
-        if (!uint.TryParse(expiresString, out uint expiresSeconds))
-            expiresSeconds = 3600;     // 1 hour
-        return TimeSpan.FromSeconds(expiresSeconds);
+        DateTimeOffset? lockoutEnd = await _userManager.GetLockoutEndDateAsync(user);
+        if (lockoutEnd?.DateTime > DateTime.UtcNow)
+        {
+            if (viewName == string.Empty)
+                throw new ArgumentNullException(nameof(viewName), "The name of a in the controller contained view was expected.");
+
+            ViewBag.LockOutEnd = lockoutEnd;
+            return View(viewName, model);     // Display lockout msg
+        }
+
+        return null;
     }
 
     [HttpGet]
     [AllowWithoutMfa]
     [Route("2fa")]
-    public IActionResult Validate2fa([FromQuery(Name = "r")] string? returnUrl)
+    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl)
     {
-        throw new NotImplementedException();
+        User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+        user ??= await _userManager.GetUserAsync(User);
+
+        // Not authenticated user
+        if (user is null)
+        {
+            await HttpContext.ChallengeAsync();
+            return StatusCode(Response.StatusCode);
+        }
+
+        // Forbid if 2fa not enabled
+        if (!await _signInManager.IsTwoFactorEnabledAsync(user))
+        {
+            await HttpContext.ForbidAsync();
+            return StatusCode(Response.StatusCode);
+        }
+
+        if (MfaAuthorizationRequirement.Handle(HttpContext))     // Already 2fa signed in
+            return ReturnRequestedUrl(returnUrl);
+
+        ViewBag.ReturnUrl = returnUrl;
+        return View();
     }
 
     [HttpPost]
     [AllowWithoutMfa]
     [Route("2fa")]
-    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, object? model)
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] Validate2faModel model)
     {
-        throw new NotImplementedException();
+        IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
+        User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+
+        // Not authenticated user
+        if (user is null)
+        {
+            await HttpContext.ChallengeAsync();
+            return StatusCode(Response.StatusCode);
+        }
+
+        // Forbid if 2fa not enabled
+        if (!await _signInManager.IsTwoFactorEnabledAsync(user))
+        {
+            await HttpContext.ForbidAsync();
+            return StatusCode(Response.StatusCode);
+        }
+
+        if (MfaAuthorizationRequirement.Handle(HttpContext))     // Already 2fa signed in
+            return ReturnRequestedUrl(returnUrl);
+
+        if (ModelState.IsValid)
+        {
+            SignInResult result = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, false, model.RememberMe);
+            if (result.Succeeded)
+            {
+                _logger.LogInformation("2fa login from user {0}", user.Id);
+                return ReturnRequestedUrl(returnUrl);
+            }
+            else if (result.IsLockedOut)
+                return (await LockOutIfNecessaryAsync(user, model))!;
+            else     // General failed
+            {
+                _logger.LogInformation("2fa login failed from user {0}", user.Id);
+                ViewBag.IsLoginFailed = true;
+                return View(model);
+            }
+        }
+
+        _logger.LogInformation("Invalid 2fa login model state from user {0}", user.Id);
+        ViewBag.IsInvalidState = true;
+        return View();
+    }
+
+    /// <summary>
+    /// Returns a redirect the requested url, but if the url isn't local a redirect to the dashboard would executed.
+    /// </summary>
+    /// <param name="returnUrl">The requested url. If null a dashboard redirect would be executed</param>
+    /// <returns>The redirect</returns>
+    [NonAction]
+    private IActionResult ReturnRequestedUrl(string? returnUrl)
+    {
+        if (string.IsNullOrEmpty(returnUrl))
+            return RedirectToAction("Index", "Dashboard");
+
+        bool isValid = Uri.TryCreate(returnUrl, default(UriCreationOptions), out Uri? uri);
+        isValid &= !uri?.IsAbsoluteUri ?? false;
+
+        if (!isValid)
+            return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
+        return Redirect(returnUrl);
     }
 
     [HttpGet]
+    [AllowWithoutMfa]
     [Route("logout")]
     public async Task<IActionResult> Logout()
     {

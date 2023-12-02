@@ -20,7 +20,7 @@ using Microsoft.IdentityModel.Tokens;
 using System.Text;
 using Microsoft.Extensions.DependencyInjection.Extensions;
 using WebSchoolPlanner.Db.Stores;
-using WebSchoolPlanner.TokenProviders;
+using WebSchoolPlanner.IdentityProviders;
 using WebSchoolPlanner.Options;
 using OtpNet;
 using Microsoft.AspNetCore.Authorization;
@@ -114,6 +114,7 @@ public class Startup
                 int maxFailedLoginAttempts = int.Parse(_configuration["Account:MaxFailedSignInAttempts"] ?? "5");
                 double lockOutSeconds = double.Parse(_configuration["Account:LockOutTimeSpan"] ?? "300");
 
+
                 options.Lockout.MaxFailedAccessAttempts = maxFailedLoginAttempts;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(lockOutSeconds);
 
@@ -121,6 +122,7 @@ public class Startup
             })
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders()
+            .AddClaimsPrincipalFactory<UserClaimsPrincipialFactory<User, Role>>()
             .AddTokenProvider<UserTwoFactorTokenProvider<User>>(TFATokenProvider);
         services.AddSingleton<UserImageStore<User>, UserImageStore<User>>();
 
@@ -173,7 +175,7 @@ public class Startup
         services
             .AddAuthorization(options =>
             {
-                options.DefaultPolicy = new(new List<IAuthorizationRequirement> { new MFAAuthorizationRequirement() }, Enumerable.Empty<string>());
+                options.DefaultPolicy = new(new List<IAuthorizationRequirement> { new MfaAuthorizationRequirement() }, Enumerable.Empty<string>());
             })
             .AddAntiforgery(options =>
             {

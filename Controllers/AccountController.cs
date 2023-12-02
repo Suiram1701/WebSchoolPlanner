@@ -85,12 +85,8 @@ public sealed class AccountController : Controller
                 IdentityResult setEnabledResult = await _userManager.SetTwoFactorEnabledAsync(user, true);
                 HandleIdentityResult(setEnabledResult);
 
-                // Add the 2fa login claims to the current session
-                Claim persistentClaim = User.FindFirst("isPersistent")!;
-                bool isPersistent = bool.Parse(persistentClaim.Value);
-
                 string tokenProvider = _signInManager.Options.Tokens.AuthenticatorTokenProvider;
-                await _signInManager.TwoFactorSignInAsync(tokenProvider, model.Code, isPersistent, model.RememberMe);
+                await _signInManager.TwoFactorSignInAsync(tokenProvider, model.Code, false, model.RememberMe);
 
                 // Successful
                 _logger.LogInformation("2fa feature for user {0} enabled", user.Id);
