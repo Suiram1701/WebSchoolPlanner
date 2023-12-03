@@ -17,6 +17,10 @@
 }
 
 <div id="form-div" class="w-100 m-auto form-signin @{if (ViewBag.IsLoginFailed ?? false) {<text>form-invalid</text>}}">
+
+    <div class="text-center">
+        <img src="~/img/password.svg" width="55" />
+    </div>
     <h1 class="h3 mb-3 fw-normal">@_localizer["PlsSignIn"]</h1>
 
     <form id="signin-form" asp-controller="Auth" asp-action="Login" asp-route-r="@ViewBag.ReturnUrl" asp-antiforgery="true">

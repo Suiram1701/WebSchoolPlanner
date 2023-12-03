@@ -107,7 +107,7 @@
     <value>Passwort</value>
   </data>
   <data name="PlsSignIn" xml:space="preserve">
-    <value>Bitte einloggen</value>
+    <value>Bitte anmelden</value>
   </data>
   <data name="InvalidLoginData" xml:space="preserve">
     <value>Der Benutzername oder das Passwort ist ungültig</value>

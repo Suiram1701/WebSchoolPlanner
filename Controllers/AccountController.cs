@@ -71,6 +71,7 @@ public sealed class AccountController : Controller
     {
         User user = (await _userManager.GetUserAsync(User))!;
 
+        model.Code = model.Code.Replace(" ", string.Empty);
         if (ModelState.IsValid)
         {
             byte[] secret = Convert.FromHexString(model.EncodedSecret);

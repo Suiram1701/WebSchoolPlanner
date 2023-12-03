@@ -55,7 +55,7 @@ public sealed class AuthController : Controller
     public IActionResult Login([FromQuery(Name = "r")] string? returnUrl)
     {
         if (_signInManager.IsSignedIn(User))
-            return ReturnRequestedUrl(returnUrl);
+            return this.RedirectToReturnUrl(returnUrl);
 
         ViewBag.ReturnUrl = returnUrl;
         return View();
@@ -76,7 +76,7 @@ public sealed class AuthController : Controller
         ViewBag.ReturnUrl = returnUrl;
 
         if (_signInManager.IsSignedIn(User))     // Already signed in
-            return ReturnRequestedUrl(returnUrl);
+            return this.RedirectToReturnUrl(returnUrl);
 
         if (ModelState.IsValid)
         {
@@ -118,7 +118,7 @@ public sealed class AuthController : Controller
 
             // successful
             _logger.LogInformation("Login from IPv4 {0} to user {1}", clientIP, user.Id);
-            return ReturnRequestedUrl(returnUrl);
+            return this.RedirectToReturnUrl(returnUrl);
         }
 
         // Invalid model state
@@ -180,6 +180,7 @@ public sealed class AuthController : Controller
         user ??= await _userManager.GetUserAsync(User);
 
         ViewBag.ConfirmationReason = reason;
+        model.Code = model.Code.Replace(" ", string.Empty);
         if (ModelState.IsValid)
         {
             // Handles the reason of a 2fa confirmation
@@ -191,7 +192,7 @@ public sealed class AuthController : Controller
                 {
                     await Handle2faConfirmationRequest(user!, reason);
                     _logger.LogInformation("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
-                    return ReturnRequestedUrl(returnUrl);
+                    return this.RedirectToReturnUrl(returnUrl);
                 }
 
                 // Confirmation failed
@@ -207,7 +208,7 @@ public sealed class AuthController : Controller
             if (signInResult.Succeeded)     // Success
             {
                 _logger.LogInformation("2fa login from user {0}", user!.Id);
-                return ReturnRequestedUrl(returnUrl);
+                return this.RedirectToReturnUrl(returnUrl);
             }
             else if (signInResult.IsLockedOut)
                 return (await LockOutIfNecessaryAsync(user!, model))!;
@@ -281,28 +282,9 @@ public sealed class AuthController : Controller
         }
 
         if (_signInManager.IsSignedIn(User))     // Already 2fa signed in
-            return ReturnRequestedUrl(returnUrl);
+            return this.RedirectToReturnUrl(returnUrl);
 
         return null;
-    }
-
-    /// <summary>
-    /// Returns a redirect the requested url, but if the url isn't local a redirect to the dashboard would executed.
-    /// </summary>
-    /// <param name="returnUrl">The requested url. If null a dashboard redirect would be executed</param>
-    /// <returns>The redirect</returns>
-    [NonAction]
-    private IActionResult ReturnRequestedUrl(string? returnUrl)
-    {
-        if (string.IsNullOrEmpty(returnUrl))
-            return RedirectToAction("Index", "Dashboard");
-
-        bool isValid = Uri.TryCreate(returnUrl, default(UriCreationOptions), out Uri? uri);
-        isValid &= !uri?.IsAbsoluteUri ?? false;
-
-        if (!isValid)
-            return RedirectToAction("Index", "Dashboard");     // Redirect to dashboard
-        return Redirect(returnUrl);
     }
 
     [HttpGet]

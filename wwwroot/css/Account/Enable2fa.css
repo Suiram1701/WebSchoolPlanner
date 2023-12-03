@@ -1,3 +1,8 @@
-﻿.form-invalid input[id="codeInput"] {
+﻿.form-enable {
+    max-width: 500px;
+    padding: 1rem;
+}
+
+.form-invalid input[id="codeInput"] {
     border-color: var(--bs-form-invalid-color);
 }
