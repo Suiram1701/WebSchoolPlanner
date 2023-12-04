@@ -9,7 +9,6 @@ namespace WebSchoolPlanner.Controllers;
 public sealed class DashboardController : Controller
 {
     [HttpGet]
-    [Route("")]
     public IActionResult Index()
     {
         return View();
