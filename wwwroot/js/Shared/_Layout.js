@@ -67,6 +67,11 @@ function ShowErrorBox(error) {
 
 $().ready(function () {
 
+    // Init bootstrap tooltips
+    document.querySelectorAll('[data-bs-toggle="tooltip"]').forEach(tooltip => {
+        new bootstrap.Tooltip(tooltip)
+    });
+
     // color theme setup
     const currentTheme = $("html").attr("data-bs-theme");
     if (currentTheme === "auto")

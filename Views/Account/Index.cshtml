@@ -59,7 +59,11 @@
                         <div class="d-flex flex-column my-2">
                             @if (await _signInManager.IsTwoFactorEnabledAsync(user))
                             {
-                                <a class="btn btn-danger" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="disable2fa" >@_localizer["Deactivate"]</a>
+                                <a class="btn btn-danger" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="disable2fa">@_localizer["Deactivate"]</a>
+                                @if (await _signInManager.IsTwoFactorClientRememberedAsync(user))
+                                {
+                                    <a class="btn btn-secondary mt-1" asp-controller="Account" asp-action="Forget2faRemembered" asp-route-r="/account#security" data-bs-toggle="tooltip" data-bs-placement="bottom" title="@_localizer["TFA_Forget_Tooltip"]">@_localizer["TFA_Forget"]</a>
+                                }
                             }
                             else
                             {

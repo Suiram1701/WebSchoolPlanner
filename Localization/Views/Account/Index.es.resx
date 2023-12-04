@@ -121,4 +121,10 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Desactivar</value>
   </data>
+  <data name="TFA_Forget" xml:space="preserve">
+    <value>Olvídate de este navegador</value>
+  </data>
+  <data name="TFA_Forget_Tooltip" xml:space="preserve">
+    <value>Este navegador está actualmente marcado para inicios de sesión 2FA</value>
+  </data>
 </root>

@@ -121,4 +121,10 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Деактивировать</value>
   </data>
+  <data name="TFA_Forget" xml:space="preserve">
+    <value>Забудь этот браузер</value>
+  </data>
+  <data name="TFA_Forget_Tooltip" xml:space="preserve">
+    <value>Этот браузер в настоящее время отмечен для входа в систему с использованием 2FA</value>
+  </data>
 </root>

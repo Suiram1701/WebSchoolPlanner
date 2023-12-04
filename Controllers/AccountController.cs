@@ -37,7 +37,6 @@ public sealed class AccountController : Controller
     }
 
     [HttpGet]
-    [Route("")]
     public IActionResult Index()
     {
         return View();
@@ -106,6 +105,14 @@ public sealed class AccountController : Controller
         // Invalid model state
         _logger.LogInformation("Invalid enable 2fa model state from user {0}", user.Id);
         throw new ArgumentException("The request model state is invalid", nameof(model));
+    }
+
+    [HttpGet]
+    [Route("forget2fa")]
+    public async Task<IActionResult> Forget2faRemembered([FromQuery(Name = "r")] string? returnUrl)
+    {
+        await _signInManager.ForgetTwoFactorClientAsync();
+        return this.RedirectToReturnUrl(returnUrl);
     }
 
     /// <summary>
