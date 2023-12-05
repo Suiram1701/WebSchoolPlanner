@@ -56,7 +56,7 @@ public class UserImageStore<TUser>
 
         UserImageModel? model = await _dbContext.UserImages.FindAsync(user.Id);
         if (model is null)     // No image was set
-            return Array.Empty<byte>();
+            return null;
 
         return model.Image;
     }

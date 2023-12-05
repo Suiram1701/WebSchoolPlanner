@@ -18,8 +18,10 @@ public class WebSchoolPlannerDbContext : IdentityDbContext<User, Role, string>
         base.OnModelCreating(builder);
 
         builder.Entity<User>()     // Configure user image
-            .OwnsOne(u => u.AccountImage)
-            .WithOwner()
-            .HasForeignKey(r => r.Id);
+            .HasOne(u => u.AccountImage)
+            .WithOne()
+            .HasForeignKey<UserImageModel>(ui => ui.Id)
+            .IsRequired(false)
+            .OnDelete(DeleteBehavior.Cascade);
     }
 }

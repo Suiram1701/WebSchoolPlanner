@@ -6,7 +6,7 @@
 public class CropModel
 {
     /// <summary>
-    /// The point where the croping begin
+    /// The point where the cropping begins
     /// </summary>
     public Point Point { get; set; }
 

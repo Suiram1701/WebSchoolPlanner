@@ -273,7 +273,7 @@ namespace WebSchoolPlanner.Migrations
 
             modelBuilder.Entity("WebSchoolPlanner.Db.Models.User", b =>
                 {
-                    b.OwnsOne("WebSchoolPlanner.Db.Models.UserImageModel", "AccountImage", b1 =>
+                    b.OwnsOne("WebSchoolPlanner.Db.Models.User.AccountImage#WebSchoolPlanner.Db.Models.UserImageModel", "AccountImage", b1 =>
                         {
                             b1.Property<string>("Id")
                                 .HasColumnType("nvarchar(450)");
@@ -285,7 +285,7 @@ namespace WebSchoolPlanner.Migrations
 
                             b1.HasKey("Id");
 
-                            b1.ToTable("UserImages");
+                            b1.ToTable("UserImages", (string)null);
 
                             b1.WithOwner()
                                 .HasForeignKey("Id");
