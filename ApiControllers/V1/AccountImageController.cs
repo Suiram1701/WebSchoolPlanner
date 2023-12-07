@@ -19,11 +19,14 @@ using SixLabors.ImageSharp.Formats.Tga;
 using SixLabors.ImageSharp.Formats.Tiff;
 using SixLabors.ImageSharp.Formats.Webp;
 using SixLabors.ImageSharp.Formats.Png;
+using SixLabors.ImageSharp;
+using SixLabors.ImageSharp.Processing;
+using System.ComponentModel;
 
 namespace WebSchoolPlanner.ApiControllers.V1;
 
 /// <summary>
-/// Manage the account image
+/// Endpoints to manage the account image.
 /// </summary>
 [Route(ApiRoutePrefix + "account/image")]
 [Authorize]

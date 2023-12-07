@@ -1,4 +1,6 @@
-﻿namespace WebSchoolPlanner.ApiModels;
+﻿using SixLabors.ImageSharp;
+
+namespace WebSchoolPlanner.ApiModels;
 
 /// <summary>
 /// Detailed information to crop an image to a rect

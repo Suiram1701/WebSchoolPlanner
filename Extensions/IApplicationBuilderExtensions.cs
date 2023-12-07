@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Diagnostics;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using SixLabors.ImageSharp;
 using System.Diagnostics;
 using System.Text;
 using WebSchoolPlanner.Middlewares;

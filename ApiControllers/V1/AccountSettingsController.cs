@@ -22,19 +22,19 @@ using System.Net;
 namespace WebSchoolPlanner.ApiControllers.V1;
 
 /// <summary>
-/// Generally settings and actions for accounts.
+/// Endpoints to manage the settings of the logged in account.
 /// </summary>
-[Route(ApiRoutePrefix + "account/")]
+[Route(ApiRoutePrefix + "account/settings")]
 [Authorize]
 [ApiVersion("1")]
 [ApiController]
-public sealed class AccountController : ControllerBase
+public sealed class AccountSettingsController : ControllerBase
 {
     private readonly ILogger _logger;
     private readonly SignInManager<User> _signInManager;
     private readonly UserManager<User> _userManager;
 
-    public AccountController(ILogger<AccountController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
+    public AccountSettingsController(ILogger<AccountSettingsController> logger, SignInManager<User> signInManager, UserManager<User> userManager)
     {
         _logger = logger;
         _signInManager = signInManager;
@@ -59,7 +59,6 @@ public sealed class AccountController : ControllerBase
     /// </remarks>
     /// <param name="settingNames">The setting names to return.</param>
     [HttpPost]
-    [Route("settings")]
     [Consumes(typeof(string[]), "application/json")]
     [Produces("application/json", Type = typeof(Dictionary<string, string>))]
     [ProducesResponseType(StatusCodes.Status200OK, Type = typeof(Dictionary<string, string>))]
@@ -134,7 +133,6 @@ public sealed class AccountController : ControllerBase
     /// <param name="localizationOptions"></param>
     /// <param name="settings">The settings to set.</param>
     [HttpPut]
-    [Route("settings")]
     [Consumes(typeof(Dictionary<string, string>), "application/json")]
     [ProducesResponseType(StatusCodes.Status200OK)]
     public async Task<IActionResult> PutSettings([FromBody] Dictionary<string, string> settings, [FromServices] IOptions<RequestLocalizationOptions> localizationOptions)
