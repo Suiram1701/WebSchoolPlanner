@@ -106,13 +106,13 @@
   <data name="security" xml:space="preserve">
     <value>Sécurité</value>
   </data>
-  <data name="TFA" xml:space="preserve">
+  <data name="MFA" xml:space="preserve">
     <value>Authentification à deux facteurs</value>
   </data>
-  <data name="TFA_Description" xml:space="preserve">
+  <data name="MFA_Description" xml:space="preserve">
     <value>L'authentification à deux facteurs (2FA) augmente la sécurité de votre compte car elle nécessite un code dépendant du temps en plus du mot de passe. Ce code, valable seulement pendant une courte période, est fourni par une application d'authentification ou par email.</value>
   </data>
-  <data name="TFA_App" xml:space="preserve">
+  <data name="MFA_App" xml:space="preserve">
     <value>Application d'authentification</value>
   </data>
   <data name="Activate" xml:space="preserve">
@@ -121,10 +121,22 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Désactiver</value>
   </data>
-  <data name="TFA_Forget" xml:space="preserve">
+  <data name="MFA_Forget" xml:space="preserve">
     <value>Oubliez ce navigateur</value>
   </data>
-  <data name="TFA_Forget_Tooltip" xml:space="preserve">
-    <value>Ce navigateur est actuellement marqué pour les connexions 2FA</value>
+  <data name="MFA_Forget_Tooltip" xml:space="preserve">
+    <value>Ce navigateur est actuellement enregistré pour les connexions 2FA</value>
+  </data>
+  <data name="MFA_Recovery" xml:space="preserve">
+    <value>Une reprise à deux facteurs</value>
+  </data>
+  <data name="MFA_Recovery_Remove" xml:space="preserve">
+    <value>Supprimer les codes de récupération</value>
+  </data>
+  <data name="MFA_Recovery_CreateNew" xml:space="preserve">
+    <value>Générer des codes de récupération</value>
+  </data>
+  <data name="MFA_Recovery_Count" xml:space="preserve">
+    <value>Il existe actuellement {0} codes de récupération valides.</value>
   </data>
 </root>

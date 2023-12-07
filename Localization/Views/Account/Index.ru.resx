@@ -106,13 +106,13 @@
   <data name="security" xml:space="preserve">
     <value>Безопасность</value>
   </data>
-  <data name="TFA" xml:space="preserve">
+  <data name="MFA" xml:space="preserve">
     <value>Двухфакторная аутентификация</value>
   </data>
-  <data name="TFA_Description" xml:space="preserve">
+  <data name="MFA_Description" xml:space="preserve">
     <value>Двухфакторная аутентификация (2FA) повышает безопасность вашей учетной записи, поскольку в дополнение к паролю требует код, зависящий от времени. Этот код, действительный только в течение короткого времени, предоставляется приложением для аутентификации или электронной почтой.</value>
   </data>
-  <data name="TFA_App" xml:space="preserve">
+  <data name="MFA_App" xml:space="preserve">
     <value>Приложение для аутентификации</value>
   </data>
   <data name="Activate" xml:space="preserve">
@@ -121,10 +121,22 @@
   <data name="Deactivate" xml:space="preserve">
     <value>Деактивировать</value>
   </data>
-  <data name="TFA_Forget" xml:space="preserve">
+  <data name="MFA_Forget" xml:space="preserve">
     <value>Забудь этот браузер</value>
   </data>
-  <data name="TFA_Forget_Tooltip" xml:space="preserve">
-    <value>Этот браузер в настоящее время отмечен для входа в систему с использованием 2FA</value>
+  <data name="MFA_Forget_Tooltip" xml:space="preserve">
+    <value>Этот браузер в настоящее время сохранен для входа в систему с помощью 2FA</value>
+  </data>
+  <data name="MFA_Recovery" xml:space="preserve">
+    <value>Двухфакторное восстановление</value>
+  </data>
+  <data name="MFA_Recovery_Remove" xml:space="preserve">
+    <value>Удалить коды восстановления</value>
+  </data>
+  <data name="MFA_Recovery_CreateNew" xml:space="preserve">
+    <value>Генерация кодов восстановления</value>
+  </data>
+  <data name="MFA_Recovery_Count" xml:space="preserve">
+    <value>В настоящее время действительны {0} кодов восстановления.</value>
   </data>
 </root>

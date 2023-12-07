@@ -40,29 +40,34 @@
             <div class="tab-pane fade" id="security-tab-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="1">
 
                 <!-- 2FA settings -->
-                <h3 class="text-start fw-light">@_localizer["TFA"]</h3>
+                <h3 class="text-start fw-light">@_localizer["MFA"]</h3>
                 <hr />
 
                 <p class="lead text-body-secondary">
-                    @_localizer["TFA_Description"]
+                    @_localizer["MFA_Description"]
                 </p> 
 
                 <div class="d-flex flex-wrap justify-content-center">
+                    @{
+                        bool appMfaEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
+                        bool emailMfaEnabled = false;
+                        bool mfaRecoveryEnabled = appMfaEnabled || emailMfaEnabled;
+                    }
 
                     <!-- App auth -->
                     <div class="d-flex flex-column flex-nowrap m-3">
                         <div class="d-flex">
                             <img src="~/img/phone_iphone.svg" class="me-2" height="35" width="35" />
-                            <h4 class="fw-light">@_localizer["TFA_App"]</h4>
+                            <h4 class="fw-light">@_localizer["MFA_App"]</h4>
                         </div>
 
                         <div class="d-flex flex-column my-2">
-                            @if (await _signInManager.IsTwoFactorEnabledAsync(user))
+                            @if (appMfaEnabled)
                             {
                                 <a class="btn btn-danger" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="disable2fa">@_localizer["Deactivate"]</a>
                                 @if (await _signInManager.IsTwoFactorClientRememberedAsync(user))
                                 {
-                                    <a class="btn btn-secondary mt-1" asp-controller="Account" asp-action="Forget2faRemembered" asp-route-r="/account#security" data-bs-toggle="tooltip" data-bs-placement="bottom" title="@_localizer["TFA_Forget_Tooltip"]">@_localizer["TFA_Forget"]</a>
+                                    <a class="btn btn-secondary mt-1" asp-controller="Account" asp-action="Forget2faRemembered" asp-route-r="/account#security" data-bs-toggle="tooltip" data-bs-placement="bottom" title="@_localizer["MFA_Forget_Tooltip"]">@_localizer["MFA_Forget"]</a>
                                 }
                             }
                             else
@@ -76,6 +81,35 @@
                     <div class="m-3">
                         Email
                     </div>
+
+                    @{
+                        int codeCount = await _userManager.CountRecoveryCodesAsync(user);
+                    }
+                    @if (mfaRecoveryEnabled)
+                    {
+                        <!-- Recovery -->
+                        <div class="d-flex flex-column flex-nowrap m-3">
+                            <div class="d-flex">
+                                <img src="~/img/password.svg" class="me-2" height="35" width="35" />
+                                <h4 class="fw-light">@_localizer["MFA_Recovery"]</h4>
+                            </div>
+
+                            <div class="d-flex flex-column my-2">
+                                @if (codeCount > 0)
+                                {
+                                    <p class="fw-light">
+                                        @_localizer["MFA_Recovery_Count", codeCount]
+                                    </p>
+                                }
+
+                                <a class="btn btn-primary" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="create2faRecovery">@_localizer["MFA_Recovery_CreateNew"]</a>
+                                @if (codeCount > 0)
+                                {
+                                    <a class="btn btn-danger mt-1" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="remove2faRecovery">@_localizer["MFA_Recovery_Remove"]</a>
+                                }
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
