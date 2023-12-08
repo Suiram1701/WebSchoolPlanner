@@ -1,0 +1,18 @@
+﻿html[data-bs-theme="white"] .recovery-code {
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-secondary-rgb), var(--bs-bg-opacity)) !important;
+}
+
+html[data-bs-theme="dark"] .recovery-code {
+    --bs-bg-opacity: 1;
+    background-color: rgba(var(--bs-dark-rgb), var(--bs-bg-opacity)) !important;
+    color: rgba(var(--bs-gray-500),var(--bs-text-opacity)) !important;
+}
+
+.code {
+    opacity: 0;
+}
+
+.code:hover {
+    opacity: 1;
+}

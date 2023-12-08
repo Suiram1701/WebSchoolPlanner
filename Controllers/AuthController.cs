@@ -1,21 +1,17 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
-using System.Globalization;
-using System.Diagnostics.CodeAnalysis;
-using WebSchoolPlanner.Db.Models;
-using WebSchoolPlanner.Models;
-using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
-using Humanizer;
-using System.Net;
-using System.Security.Claims;
-using Microsoft.AspNetCore.Authentication;
-using System.Runtime.CompilerServices;
-using WebSchoolPlanner.Extensions;
-using WebSchoolPlanner.Authorization;
-using Microsoft.AspNetCore.Http.Features;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
+using System.Net;
+using System.Runtime.CompilerServices;
+using WebSchoolPlanner.Db.Models;
+using WebSchoolPlanner.Extensions;
+using WebSchoolPlanner.Models;
+using WebSchoolPlanner.Options;
+using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
 
 namespace WebSchoolPlanner.Controllers;
 
@@ -34,7 +30,9 @@ public sealed class AuthController : Controller
 
     private readonly IEnumerable<string> _2faReasons = new[]
     {
-        "disable2fa"
+        "disable2fa",
+        "create2faRecovery",
+        "remove2faRecovery"
     };
 
     public AuthController(ILogger<AuthController> logger, IConfiguration configuration, SignInManager<User> signInManager, UserManager<User> userManager)
@@ -160,7 +158,7 @@ public sealed class AuthController : Controller
 
         if (!_2faReasons.Contains(reason))     // Check only the 2fa conditions if it isn't a confirmation request
         {
-            if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
+            if (await CheckMfaConditionsAsync(user, returnUrl) is IActionResult result)
                 return result;
         }
         else
@@ -189,11 +187,7 @@ public sealed class AuthController : Controller
                 string tokenProvider = _userManager.Options.Tokens.AuthenticatorTokenProvider;
                 bool verifyResult = await _userManager.VerifyTwoFactorTokenAsync(user!, tokenProvider, model.Code);
                 if (verifyResult)     // Success
-                {
-                    await Handle2faConfirmationRequest(user!, reason);
-                    _logger.LogInformation("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
-                    return this.RedirectToReturnUrl(returnUrl);
-                }
+                    return await Handle2faConfirmationRequest(user!, returnUrl, reason);
 
                 // Confirmation failed
                 _logger.LogInformation("2fa confirmation for reason '{1}' failed for user {0}", user!.Id, reason);
@@ -201,7 +195,7 @@ public sealed class AuthController : Controller
                 return View();
             }
 
-            if (await CheckMfaConditions(user, returnUrl) is IActionResult result)
+            if (await CheckMfaConditionsAsync(user, returnUrl) is IActionResult result)
                 return result;
 
             SignInResult signInResult = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, false, model.RememberMe);
@@ -229,12 +223,15 @@ public sealed class AuthController : Controller
     /// Handles the reason of a 2fa confirmation request
     /// </summary>
     /// <param name="user">The user</param>
+    /// <param name="returnUrl">The url where the request should return after a successful execution</param>
     /// <param name="reason">The reason</param>
-    /// <returns>The task</returns>
+    /// <returns><see langword="null"/> if no special result is required.</returns>
     [NonAction]
-    private async Task Handle2faConfirmationRequest(User user, string reason)
+    private async Task<IActionResult> Handle2faConfirmationRequest(User user, string? returnUrl, string reason)
     {
-        IdentityResult result;
+        string successfulLogText = string.Format("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
+
+        IdentityResult result = IdentityResult.Success;
         switch (reason)
         {
             case "disable2fa":     // Disable 2fa feature and remove the totp secret
@@ -244,6 +241,34 @@ public sealed class AuthController : Controller
 
                 result = await _userManager.RemoveTwoFactorSecretAsync(user);
                 _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
+                break;
+            case "create2faRecovery":
+                MfaRecoveryOptions options = HttpContext.RequestServices.GetService<IOptions<MfaRecoveryOptions>>()!.Value;
+
+                IEnumerable<string>? codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, options.CodeCount);
+                if (codes is null)
+                {
+                    result = IdentityResult.Failed(new IdentityError
+                    {
+                        Code = (-1).ToString(),
+                        Description = "An error happend while updating recovery codes"
+                    });
+                }
+
+                // Code display
+                _logger.LogInformation(successfulLogText);
+                ViewBag.ReturnUrl = returnUrl;
+                return View("Create2faRecovery", codes!);
+            case "remove2faRecovery":
+                object? resultObj = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 0);
+                if (resultObj is null)     // An error happend
+                {
+                    result = IdentityResult.Failed(new IdentityError
+                    {
+                        Code = (-1).ToString(),
+                        Description = "An error happend while updating recovery codes"
+                    });
+                }
                 break;
             default:
                 throw new ArgumentException("The specified confirmation reason could not be found.", nameof(reason));
@@ -256,6 +281,9 @@ public sealed class AuthController : Controller
             _logger.LogError("An occurred error happend while executing 2fa confirmation reason '{1}'; User: {0}; Error: {2}", user.Id, reason, errorJson);
             throw new Exception(string.Format("An occurred error happend while executing 2fa confirmation reason '{0}'", reason));
         }
+
+        _logger.LogInformation(successfulLogText);
+        return this.RedirectToReturnUrl(returnUrl);
     }
 
     /// <summary>
@@ -265,7 +293,7 @@ public sealed class AuthController : Controller
     /// <param name="returnUrl">The url where the request wasn't to return after a successfully validation</param>
     /// <returns>The result. <see langword="null"/> if the check was successful</returns>
     [NonAction]
-    private async Task<IActionResult?> CheckMfaConditions(User? user, string? returnUrl)
+    private async Task<IActionResult?> CheckMfaConditionsAsync(User? user, string? returnUrl)
     {
         // Not authenticated user
         if (user is null)

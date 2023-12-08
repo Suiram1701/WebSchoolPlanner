@@ -1,0 +1,72 @@
+﻿@using System.Text
+
+@model IEnumerable<string>;
+
+@inject IViewLocalizer _localizer;
+@inject IConfiguration _configuration;
+@inject UserManager<User> _userManager;
+
+@{
+    ViewData["Title"] = _localizer["Title"];
+}
+
+@section Stylesheets {
+    <link rel="stylesheet" type="text/css" href="~/css/Auth/Create2faRecovery.css" />
+}
+
+<div class="text-center m-auto">
+    <h1 class="fw-light">@_localizer["Title"]</h1>
+
+    <p class="lead fw-light">
+        @_localizer["Description"]
+    </p>
+
+    <div class="d-flex justify-content-center flex-wrap">
+        @foreach (string code in Model)
+        {
+            <div class="m-2">
+                <div class="recovery-code rounded px-2 bg-body text-white">
+                    <div class="code">
+                        @code
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="d-flex justify-content-evenly">
+
+        <!-- code download -->
+        @{
+            StringBuilder fileContentBuilder = new();
+            fileContentBuilder.AppendJoin('\n', Model);
+
+            byte[] builderBytes = Encoding.UTF8.GetBytes(fileContentBuilder.ToString());
+            string base64String = Convert.ToBase64String(builderBytes);
+            string dataUri = "data:text/plain;base64," + base64String;
+
+            StringBuilder filenameBuilder = new();
+            filenameBuilder.Append(_userManager.GetUserName(User)!);
+            filenameBuilder.Append(' ');
+            filenameBuilder.Append(_localizer["Filename"].Value);
+            filenameBuilder.Append(" - ");
+            filenameBuilder.Append(_configuration[AppInfoConfigurationPrefix + "Name"]);
+            filenameBuilder.Append(".txt");
+        }
+        <a class="btn btn-secondary m-4" href="@dataUri" download="@filenameBuilder.ToString()">
+            @_localizer["Download"]
+        </a>
+
+        <!-- back redirect -->
+        @{
+            string returnUrl = ViewBag.ReturnUrl;
+            bool parsed = Uri.TryCreate(returnUrl, UriKind.RelativeOrAbsolute, out Uri? uri);
+            string returnPath = parsed && (!uri?.IsAbsoluteUri ?? false)
+            ? returnUrl
+            : "/";
+        }
+        <a class="btn btn-primary m-4 px-3" href="@returnPath">
+            @_localizer["Ready"]
+        </a>
+    </div>
+</div>

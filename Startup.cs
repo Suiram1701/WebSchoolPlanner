@@ -124,6 +124,7 @@ public class Startup
             .AddTokenProvider<UserTwoFactorTokenProvider<User>>(TFATokenProvider);
         services.AddSingleton<UserImageStore<User>, UserImageStore<User>>();
 
+        // Options
         services.AddOptions<TotpAuthenticationOptions>().Configure(options =>
         {
             options.Issuer = _configuration[TotpConfigurationPrefix + "Issuer"] ?? string.Empty;
@@ -167,6 +168,16 @@ public class Startup
                 string text = string.Format(parseErrorMessage, TotpConfigurationPrefix + "TotpSize");
                 throw new FormatException(text);
             }
+        });
+        services.AddOptions<MfaRecoveryOptions>().Configure(options =>
+        {
+            const string configurationPath = AuthenticationConfigurationPrefix + "Recovery:" + "CodeCount";
+            string codeCountString = _configuration[configurationPath]
+            ?? 6.ToString();
+            if (!int.TryParse(codeCountString, out int codeCount) || codeCount <= 0)
+                throw new ArgumentException(string.Format("A integer value greater than 0 was expected in the configuration file (configuration path: '{0}')", configurationPath));
+
+            options.CodeCount = codeCount;
         });
 
         // Security

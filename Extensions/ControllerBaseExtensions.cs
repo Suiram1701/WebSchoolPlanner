@@ -19,7 +19,6 @@ public static class ControllerBaseExtensions
         if (string.IsNullOrEmpty(returnUrl))
             return controller.RedirectToAction("Index", "Dashboard");
 
-        UriCreationOptions options = new() { DangerousDisablePathAndQueryCanonicalization = false };
         bool isValid = Uri.TryCreate(returnUrl, UriKind.RelativeOrAbsolute, out Uri? uri);
         isValid &= !uri?.IsAbsoluteUri ?? false;
 

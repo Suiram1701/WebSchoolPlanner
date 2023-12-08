@@ -97,52 +97,19 @@
   <resheader name="writer">
     <value>System.Resources.ResXResourceWriter, System.Windows.Forms, Version=2.0.3500.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </resheader>
+  <data name="Description" xml:space="preserve">
+    <value>Chacun des codes de récupération 2FA peut être utilisé une seule fois pour effectuer une vérification 2FA. Veuillez conserver les codes en sécurité !</value>
+  </data>
   <data name="Title" xml:space="preserve">
-    <value>Compte</value>
+    <value>Codes de récupération 2FA</value>
   </data>
-  <data name="general" xml:space="preserve">
-    <value>En général</value>
+  <data name="Filename" xml:space="preserve">
+    <value>Codes de récupération</value>
   </data>
-  <data name="security" xml:space="preserve">
-    <value>Sécurité</value>
+  <data name="Download" xml:space="preserve">
+    <value>Télécharger les codes de récupération</value>
   </data>
-  <data name="MFA" xml:space="preserve">
-    <value>Authentification à deux facteurs</value>
-  </data>
-  <data name="MFA_Description" xml:space="preserve">
-    <value>L'authentification à deux facteurs (2FA) augmente la sécurité de votre compte car elle nécessite un code dépendant du temps en plus du mot de passe. Ce code, valable seulement pendant une courte période, est fourni par une application d'authentification ou par email.</value>
-  </data>
-  <data name="MFA_App" xml:space="preserve">
-    <value>Application d'authentification</value>
-  </data>
-  <data name="Activate" xml:space="preserve">
-    <value>Activer</value>
-  </data>
-  <data name="Deactivate" xml:space="preserve">
-    <value>Désactiver</value>
-  </data>
-  <data name="MFA_Forget" xml:space="preserve">
-    <value>Oubliez ce navigateur</value>
-  </data>
-  <data name="MFA_Forget_Tooltip" xml:space="preserve">
-    <value>Ce navigateur est actuellement enregistré pour les connexions 2FA</value>
-  </data>
-  <data name="MFA_Recovery" xml:space="preserve">
-    <value>Une reprise à deux facteurs</value>
-  </data>
-  <data name="MFA_Recovery_Remove" xml:space="preserve">
-    <value>Supprimer les codes de récupération</value>
-  </data>
-  <data name="MFA_Recovery_CreateNew" xml:space="preserve">
-    <value>Générer des codes de récupération</value>
-  </data>
-  <data name="MFA_Recovery_Count" xml:space="preserve">
-    <value>Il existe actuellement {0} codes de récupération valides.</value>
-  </data>
-  <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Les codes de récupération sont des mots de passe de sauvegarde à usage unique pour l'authentification à deux facteurs. Si le deuxième facteur normal est perdu, ils proposent un accès alternatif au compte.</value>
-  </data>
-  <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
-    <value>Cette action invalidera tous les codes actuels</value>
+  <data name="Ready" xml:space="preserve">
+    <value>Prêt</value>
   </data>
 </root>
