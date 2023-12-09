@@ -9,6 +9,7 @@ using System.Net;
 using System.Runtime.CompilerServices;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
+using WebSchoolPlanner.IdentityProviders;
 using WebSchoolPlanner.Models;
 using WebSchoolPlanner.Options;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
@@ -189,12 +190,12 @@ public sealed class AuthController : Controller
                 if (verifyResult)     // Success
                 {
                     IActionResult handledConfirmation = await Handle2faConfirmationRequest(user!, returnUrl, reason);
-                    _logger.LogInformation("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
+                    _logger.LogInformation("2fa confirmation for reason '{0}' succeeded for user {1}", reason, user!.Id);
                     return handledConfirmation;
                 }
 
                 // Confirmation failed
-                _logger.LogInformation("2fa confirmation for reason '{1}' failed for user {0}", user!.Id, reason);
+                _logger.LogInformation("2fa confirmation for reason '{0}' failed for user {1}", reason, user!.Id);
                 ViewBag.IsLoginFailed = true;
                 return View();
             }
@@ -241,7 +242,8 @@ public sealed class AuthController : Controller
                 if (!result.Succeeded)
                     break;
 
-                result = await _userManager.RemoveTwoFactorSecretAsync(user);
+                UserTwoFactorTokenProvider<User> mfaTokenProvider = HttpContext.RequestServices.GetService<UserTwoFactorTokenProvider<User>>()!;
+                result = await mfaTokenProvider.RemoveAsync(_userManager, user, "TwoFactor");
                 if (!result.Succeeded)
                     break;
                 _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
@@ -265,13 +267,14 @@ public sealed class AuthController : Controller
         if (!result.Succeeded)
         {
             string errorJson = JsonConvert.SerializeObject(result.Errors);
-            _logger.LogError("An occurred error happend while executing 2fa confirmation reason '{1}'; User: {0}; Error: {2}", user.Id, reason, errorJson);
-            throw new Exception(string.Format("An occurred error happend while executing 2fa confirmation reason '{0}'", reason));
+            _logger.LogError("An occurred error happened while executing 2fa confirmation reason '{1}'; User: {0}; Error: {2}", user.Id, reason, errorJson);
+            throw new Exception(string.Format("An occurred error happened while executing 2fa confirmation reason '{0}'", reason));
         }
 
         return this.RedirectToReturnUrl(returnUrl);
     }
 
+    [NonAction]
     private async Task<(IActionResult? result, IdentityResult error)> Create2faRecoveryAsync(User user, string? returnUrl)
     {
         MfaRecoveryOptions options = HttpContext.RequestServices.GetService<IOptions<MfaRecoveryOptions>>()!.Value;
@@ -282,7 +285,7 @@ public sealed class AuthController : Controller
             IdentityResult failedResult = IdentityResult.Failed(new IdentityError
             {
                 Code = nameof(Create2faRecoveryAsync),
-                Description = "An error happend while creating new 2fa recovery codes"
+                Description = "An error happened while creating new 2fa recovery codes"
             });
             return (null, failedResult);
         }

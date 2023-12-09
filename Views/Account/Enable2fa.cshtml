@@ -34,7 +34,7 @@
         @Html.Raw(qrCode.GetGraphic(6))
     </div>
 
-    <form class="m-auto form-enable @{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}" id="codeForm" asp-controller="Account" asp-action="Enable2fa" asp-antiforgery="true">
+    <form class="m-auto form-enable @{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}" id="codeForm" asp-controller="Account" asp-action="Enable2fa" asp-route-r="@ViewBag.ReturnUrl" asp-antiforgery="true">
 
         <!-- code input -->
         <div class="form-floating">
@@ -43,7 +43,8 @@
                 for (int i = 1; i <= _options.Value.DigitsCount; i++)
                     placeHolderBuilder.Append('X');
             }
-            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off" required data-digit-count="@_options.Value.DigitsCount" />
+            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off"
+                   required data-digit-count="@_options.Value.DigitsCount" />
             <label for="codeInput">@_localizer["codeLabel", _options.Value.DigitsCount]</label>
         </div>
 
@@ -60,7 +61,7 @@
             <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
         </div>
 
-        <input type="hidden" asp-for="EncodedSecret" value="@Model.EncodedSecret" />
+        <input type="hidden" asp-for="Secret" value="@Model.Secret" />
 
         <!-- Submit -->
         <button class="w-100 my-2 btn btn-lg btn-primary" id="form-submit" type="submit">@_localizer["Submit"]</button>

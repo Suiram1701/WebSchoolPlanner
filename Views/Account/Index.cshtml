@@ -82,7 +82,7 @@
                             }
                             else
                             {
-                                <a class="btn btn-primary" asp-controller="Account" asp-action="Enable2fa">@_localizer["Activate"]</a>
+                                <a class="btn btn-primary" asp-controller="Account" asp-action="Enable2fa" asp-route-r="@ViewBag.ReturnUrl">@_localizer["Activate"]</a>
                             }
                         </div>
                     </div>

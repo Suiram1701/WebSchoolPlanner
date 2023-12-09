@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using OtpNet;
@@ -6,52 +7,73 @@ using System.Security.Claims;
 using System.Security.Cryptography;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Options;
+using static QRCoder.PayloadGenerator;
+using static QRCoder.PayloadGenerator.OneTimePassword;
 
 namespace WebSchoolPlanner.IdentityProviders;
 
 /// <summary>
 /// The default implementation of <see cref="IUserTwoFactorTokenProvider{TUser}"/> using <see cref="Totp"/>
 /// </summary>
-/// <remarks>
-/// This implementation don't create a claim to the user it only generates the token
-/// </remarks>
 /// <typeparam name="TUser">The type of the user</typeparam>
 public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>
     where TUser : IdentityUser
 {
-    private const string _totpClaim = SecurityClaimPrefix + "totp";
-
+    private readonly IHttpContextAccessor _contextAccessor;
+    private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly TotpAuthenticationOptions _options;
 
-    public UserTwoFactorTokenProvider(IConfiguration configuration, IOptions<TotpAuthenticationOptions> options)
+    private const string _tokenProvider = $"[{nameof(UserTwoFactorTokenProvider<TUser>)}]";
+
+    public UserTwoFactorTokenProvider(IHttpContextAccessor contextAccessor, ILogger<UserTwoFactorTokenProvider<TUser>> logger, IConfiguration configuration, IOptions<TotpAuthenticationOptions> options)
     {
+        _contextAccessor = contextAccessor;
+        _logger = logger;
         _configuration = configuration;
         _options = options.Value;
     }
 
     public Task<bool> CanGenerateTwoFactorTokenAsync(UserManager<TUser> manager, TUser user) =>
-        Task.FromResult(true);
+        Task.FromResult(manager.SupportsUserTwoFactor && manager.SupportsUserAuthenticationTokens && !user.TwoFactorEnabled);
 
-    public Task<string> GenerateAsync(string purpose, UserManager<TUser> manager, TUser user)
+    public async Task<string> GenerateAsync(string purpose, UserManager<TUser> manager, TUser user)
     {
-        Span<byte> secret = stackalloc byte[32];
-        RandomNumberGenerator.Fill(secret);
-        string secretString = Convert.ToHexString(secret);
-        return Task.FromResult(secretString);
+        string base32Secret = manager.GenerateNewAuthenticatorKey();
+
+        IdentityResult result = await manager.SetAuthenticationTokenAsync(user, _tokenProvider, purpose, base32Secret);
+        if (!result.Succeeded)
+        {
+            string errorJson = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An occurred error happened while generating 2fa token for user: {0}; Error: {2}", user.Id, errorJson);
+            throw new Exception(string.Format("An occurred error happened while generating 2fa token"));
+        }
+
+        return base32Secret;
     }
 
     public async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
     {
-        // Get the totp secret
-        IList<Claim> userClaims = await manager.GetClaimsAsync(user);
-        Claim secretClaim = userClaims.FirstOrDefault(c => c.Type == string.Format("{0}_{1}", _totpClaim, purpose))
-            ?? throw new InvalidOperationException("No TOTP secret for the user was found.");
-        byte[] secret = Convert.FromHexString(secretClaim.Value);
+        string? base32Secret = await manager.GetAuthenticationTokenAsync(user, _tokenProvider, purpose);
+        if (string.IsNullOrEmpty(base32Secret))     // No secret is available
+            throw new InvalidOperationException("There isn't a totp secret set for the specified user.");
+        byte[] secret = Base32Encoding.ToBytes(base32Secret);
 
         // Verify
         int timestep = _options.ValidTimeSpan.Seconds;
         Totp otp = new(secret, timestep, OtpHashMode.Sha1, _options.DigitsCount);
         return otp.VerifyTotp(token, out _);
+    }
+
+    /// <summary>
+    /// Removes the token with the specified purpose
+    /// </summary>
+    /// <param name="manager">The manager to use</param>
+    /// <param name="user">The user</param>
+    /// <param name="purpose">The name of the token</param>
+    /// <returns>The result state</returns>
+    public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
+    {
+        return await manager.RemoveAuthenticationTokenAsync(user, _tokenProvider, purpose);
     }
 }

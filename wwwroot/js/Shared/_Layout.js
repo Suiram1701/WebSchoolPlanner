@@ -41,7 +41,7 @@ function SetTheme(value, setCookie, setSvg) {
 }
 
 function LogAjaxError(data) {
-    const errorMsg = "Error happend while request. Code: " + data.status + "; Error: " + data.responseText;
+    const errorMsg = "Error happened while request. Code: " + data.status + "; Error: " + data.responseText;
     console.error(errorMsg);
 }
 

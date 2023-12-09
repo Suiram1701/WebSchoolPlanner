@@ -9,6 +9,7 @@ using QRCoder;
 using System.Security.Claims;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
+using WebSchoolPlanner.IdentityProviders;
 using WebSchoolPlanner.Models;
 using WebSchoolPlanner.Options;
 using static QRCoder.PayloadGenerator;
@@ -44,7 +45,7 @@ public sealed class AccountController : Controller
 
     [HttpGet]
     [Route("enable2fa")]
-    public async Task<IActionResult> Enable2fa()
+    public async Task<IActionResult> Enable2fa([FromQuery(Name = "r")] string? returnUrl)
     {
         User user = (await _userManager.GetUserAsync(User))!;
         if (await _signInManager.IsTwoFactorEnabledAsync(user))     // 2FA have to be disabled
@@ -54,50 +55,48 @@ public sealed class AccountController : Controller
         }
         
         string tokenProvider = _userManager.Options.Tokens.AuthenticatorTokenProvider;
-        string token = await _userManager.GenerateTwoFactorTokenAsync(user, tokenProvider);
+        string base32Secret = await _userManager.GenerateTwoFactorTokenAsync(user, tokenProvider);
 
-        byte[] secret = Convert.FromHexString(token);
+        byte[] secret = Base32Encoding.ToBytes(base32Secret);
         Create2faQRCode(user, secret);
-
         Enable2faModel model = new(secret);
+
+        ViewBag.ReturnUrl = returnUrl;
         return View(model);
     }
 
     [HttpPost]
     [Route("enable2fa")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Enable2fa([FromForm] Enable2faModel model, [FromServices] IOptions<TotpAuthenticationOptions> options)
+    public async Task<IActionResult> Enable2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] Enable2faModel model, [FromServices] IOptions<TotpAuthenticationOptions> options)
     {
         User user = (await _userManager.GetUserAsync(User))!;
 
         model.Code = model.Code.Replace(" ", string.Empty);
         if (ModelState.IsValid)
         {
-            byte[] secret = Convert.FromHexString(model.EncodedSecret);
-
-            int timesteps = options.Value.ValidTimeSpan.Seconds;
-            Totp otp = new(secret, timesteps, OtpHashMode.Sha1, options.Value.DigitsCount);
-            if (otp.VerifyTotp(model.Code, out _))
+            UserTwoFactorTokenProvider<User> twoFactorProvider = HttpContext.RequestServices.GetService<UserTwoFactorTokenProvider<User>>()!;
+            if (await twoFactorProvider.ValidateAsync("TwoFactor", model.Code, _userManager, user))
             {
-                IdentityResult setSecretResult = await _userManager.UpdateTwoFactorSecretAsync(user, secret);
-                HandleIdentityResult(setSecretResult);
-
                 IdentityResult setEnabledResult = await _userManager.SetTwoFactorEnabledAsync(user, true);
                 HandleIdentityResult(setEnabledResult);
 
-                string tokenProvider = _signInManager.Options.Tokens.AuthenticatorTokenProvider;
-                await _signInManager.TwoFactorSignInAsync(tokenProvider, model.Code, false, model.RememberMe);
+                if (model.RememberMe)
+                    await _signInManager.RememberTwoFactorClientAsync(user);
 
                 // Successful
                 _logger.LogInformation("2fa feature for user {0} enabled", user.Id);
-                return RedirectToAction("Index", "Account", "security");
+                return this.RedirectToReturnUrl(returnUrl);
             }
             else
             {
                 // Invalid enable code
+                byte[] secret = model.GetSecret();
                 Create2faQRCode(user, secret);
                 ViewBag.IsInvalid = true;
                 model.Code = string.Empty;
+
+                ViewBag.ReturnUrl = returnUrl;
                 return View(model);
             }
         }

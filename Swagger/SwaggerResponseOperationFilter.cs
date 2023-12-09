@@ -137,7 +137,7 @@ public class SwaggerResponseOperationFilter : IOperationFilter
         // Internal server error
         operation.Responses.Add("5XX", new()
         {
-            Description = "An internal error happend while the request.",
+            Description = "An internal error happened while the request.",
             Content = new Dictionary<string, OpenApiMediaType>
             {
                 {

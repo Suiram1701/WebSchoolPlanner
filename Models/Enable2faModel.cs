@@ -8,24 +8,25 @@ public class Enable2faModel
     public string Code { get; set; }
 
     /// <summary>
-    /// The 2fa secret to set
-    /// </summary>
-    public string EncodedSecret { get; set; }
-
-    /// <summary>
     /// Should the client remembered
     /// </summary>
     public bool RememberMe { get; set; }
 
+    public string Secret { get; set; }
+
     public Enable2faModel()
     {
         Code = string.Empty;
-        EncodedSecret = string.Empty;
+        Secret = string.Empty;
     }
 
     public Enable2faModel(byte[] secret) : this()
     {
-        string secretString = Convert.ToHexString(secret);
-        EncodedSecret = secretString;
+        Secret = Convert.ToHexString(secret);
+    }
+
+    public byte[] GetSecret()
+    {
+        return Convert.FromHexString(Secret);
     }
 }
