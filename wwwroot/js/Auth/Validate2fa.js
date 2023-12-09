@@ -13,7 +13,7 @@ $().ready(function () {
     });
 
     // Remove invalid mark on input
-    let form = $("form");
+    let form = $("form[id='codeForm']");
     if (!form.hasClass("form-invalid"))     // Use only when input invalid
         return;
 

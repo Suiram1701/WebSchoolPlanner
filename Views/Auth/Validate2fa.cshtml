@@ -24,23 +24,17 @@
 
 <div class="text-center d-flex flex-column justify-content-center w-100 m-auto form-validate">
 
-    <h1 class="h3 mb-3 fw-normal">@_localizer["Title"]</h1>
+    <h1 class="mb-3 fw-light">@_localizer["Title"]</h1>
     <img src="~/img/phone_iphone.svg" height="52"/>
 
-    @if (!string.IsNullOrEmpty(confirmationReason))
-    {
-        <p class="fw-light my-2">
+    <p class="fw-light lead my-3">
+        @if (!string.IsNullOrEmpty(confirmationReason))
             @_localizer["confirmation"]
-        </p>
-    }
-    else
-    {
-        <p class="fw-light">
+        else
             @_localizer["2faSignIn"]
-        </p>
-    }
+    </p>
 
-    <form id="codeForm" class="@{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}" id="signin-form"
+    <form id="codeForm" class="@{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}"
         asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@ViewBag.ReturnUrl" asp-route-y="@ViewBag.ConfirmationReason" asp-antiforgery="true">
 
         <!-- code input -->

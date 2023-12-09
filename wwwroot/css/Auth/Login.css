@@ -18,17 +18,21 @@
 
 .form-signin input[id="passwdInput"] {
     border-top-left-radius: 0px;
+    margin-top: -1px;
+}
+
+.form-signin span {
     border-top-right-radius: 0px;
     margin-top: -1px;
+    cursor: pointer;
 }
 
 .form-invalid input[id="passwdInput"] {
     border-left-color: var(--bs-form-invalid-color);
     border-bottom-color: var(--bs-form-invalid-color);
-    border-right-color: var(--bs-form-invalid-color);
 }
 
-.form-signin div[class="checkbox mb-3"] {
-    margin-top: 10px;
-    margin-bottom: 10px;
+.form-invalid span {
+    border-bottom-color: var(--bs-form-invalid-color);
+    border-right-color: var(--bs-form-invalid-color);
 }

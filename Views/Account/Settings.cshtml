@@ -12,17 +12,17 @@
 }
 
 <div class="text-center">
-    <h3>@_localizer["Title"]</h3>
+    <h1 class="fw-light">@_localizer["Title"]</h1>
 
     <div class="m-5">
-        <h3 class="text-start fw-light">@_localizer["Representation"]</h3>
+        <h2 class="text-start fw-light">@_localizer["Representation"]</h2>
         <hr />
 
         <div class="d-flex flex-wrap justify-content-center">
 
             <!-- language selection -->
             <div class="mb-5 mx-4">
-                <h5 class="fw-light">@_localizer["Culture"]</h5>
+                <h4 class="fw-light">@_localizer["Culture"]</h4>
 
                 <div class="dropdown">
                     <button class="btn dropdown-toggle" data-bs-toggle="dropdown" aria-expanded="false">
@@ -47,18 +47,19 @@
 
             <!-- color theme selection -->
             <div class="mb-5 mx-4">
-                <h5 class="fw-light">@_localizer["ColorMode"]</h5>
+                <h4 class="fw-light">@_localizer["ColorMode"]</h4>
 
                 <div class="dropdown">
                     <button id="theme-display" class="btn dropdown-toggle py-auto" data-bs-toggle="dropdown" aria-expanded="false">
-                        <img src="~/img/@(ViewBag.Theme.ToString().ToLower())_mode.svg" height="20" width="20" />
+                        <img src="~/img/@(ViewBag.Theme.ToString().ToLower())_mode.svg" height="25" width="25" />
+                        @_localizer["ColorMode_" + ViewBag.Theme.ToString()]
                     </button>
                     <ul class="dropdown-menu dropdown-menu-end">
                         @foreach (Theme theme in Enum.GetValues<Theme>())
                         {
                             <li>
                                 <button type="button" class="dropdown-item d-flex align-items-center @{if (ViewBag.Theme == theme) {<text>active</text>}}" id="userColorThemeSwitch" data-theme="@theme.ToString().ToLower()">
-                                    <img src="~/img/@(theme.ToString().ToLower())_mode.svg" class="me-2" height="20" width="20" />
+                                    <img src="~/img/@(theme.ToString().ToLower())_mode.svg" class="me-2" height="25" width="25" />
                                     @_localizer["ColorMode_" + theme.ToString()]
                                 </button>
                             </li>

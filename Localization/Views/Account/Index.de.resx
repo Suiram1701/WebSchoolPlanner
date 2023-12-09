@@ -140,7 +140,7 @@
     <value>Derzeit sind {0} Wiederherstellungscodes gültig.</value>
   </data>
   <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Wiederherstellungscode sind einmalig gültige Backup-Passwörter für die Zwei-Faktor-Authentifizierung. Bei Verlust des normalen zweiten Faktors bieten sie einen alternativen Zugang zum Konto.</value>
+    <value>Wiederherstellungscodes sind einmalig gültige Backup-Passwörter für die Zwei-Faktor-Authentifizierung. Bei Verlust des normalen zweiten Faktors bieten sie einen alternativen Zugang zum Konto.</value>
   </data>
   <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
     <value>Durch diese Aktion werden alle aktuellen Codes ungültig</value>

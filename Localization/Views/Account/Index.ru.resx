@@ -139,10 +139,10 @@
   <data name="MFA_Recovery_Count" xml:space="preserve">
     <value>В настоящее время действительны {0} кодов восстановления.</value>
   </data>
-  <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Коды восстановления — это одноразовые резервные пароли для двухфакторной аутентификации. Если нормальный второй фактор утерян, предлагают альтернативный доступ к аккаунту.</value>
-  </data>
   <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
     <value>Это действие приведет к аннулированию всех текущих кодов</value>
+  </data>
+  <data name="MFA_Recovery_Description" xml:space="preserve">
+    <value>Коды восстановления — это одноразовые резервные пароли для двухфакторной аутентификации. Если нормальный второй фактор утерян, предлагают альтернативный доступ к аккаунту.</value>
   </data>
 </root>

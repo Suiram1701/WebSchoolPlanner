@@ -139,10 +139,10 @@
   <data name="MFA_Recovery_Count" xml:space="preserve">
     <value>There are currently {0} recovery codes valid.</value>
   </data>
-  <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Recovery codes are one-time backup passwords for two-factor authentication. If the normal second factor is lost, they offer alternative access to the account.</value>
-  </data>
   <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
     <value>This action will invalidate all current codes</value>
+  </data>
+  <data name="MFA_Recovery_Description" xml:space="preserve">
+    <value>Recovery codes are one-time backup passwords for two-factor authentication. If the normal second factor is lost, they offer alternative access to the account.</value>
   </data>
 </root>

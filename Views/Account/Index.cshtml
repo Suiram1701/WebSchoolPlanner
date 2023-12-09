@@ -17,7 +17,7 @@
 }
 
 <div class="text-center">
-    <h3>@_localizer["Title"]</h3>
+    <h1 class="fw-light">@_localizer["Title"]</h1>
 
     <div class="m-3">
         <ul class="nav nav-tabs" id="myTab" role="tablist">
@@ -48,7 +48,7 @@
                 <h3 class="text-start fw-light">@_localizer["MFA"]</h3>
                 <hr />
 
-                <p class="lead text-body-secondary">
+                <p class="lead fw-light">
                     @_localizer["MFA_Description"]
                 </p> 
 
@@ -104,7 +104,7 @@
                                 <h4 class="fw-light">@_localizer["MFA_Recovery"]</h4>
                             </div>
 
-                            <p class="lead fw-light">
+                            <p class="text-body-secondary fw-light">
                                 @_localizer["MFA_Recovery_Description"]
                             </p>
 
@@ -119,19 +119,15 @@
                                        data-bs-toggle="tooltip" data-bs-placement="top" title="@_localizer["MFA_Recovery_CreateNew_Tooltip"]">
                                         @_localizer["MFA_Recovery_CreateNew"]
                                     </a>
+
+                                    <a class="btn btn-danger mt-1" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="remove2faRecovery">
+                                        @_localizer["MFA_Recovery_Remove"]
+                                    </a>
                                 }
                                 else
                                 {
                                     <a class="btn btn-primary" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="create2faRecovery">
                                         @_localizer["MFA_Recovery_CreateNew"]
-                                    </a>
-                                }
-
-                                
-                                @if (codeCount > 0)
-                                {
-                                    <a class="btn btn-danger mt-1" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="remove2faRecovery">
-                                        @_localizer["MFA_Recovery_Remove"]
                                     </a>
                                 }
                             </div>

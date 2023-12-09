@@ -139,10 +139,10 @@
   <data name="MFA_Recovery_Count" xml:space="preserve">
     <value>Actualmente hay {0} códigos de recuperación válidos.</value>
   </data>
-  <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Los códigos de recuperación son contraseñas de respaldo de un solo uso para la autenticación de dos factores. Si se pierde el segundo factor normal, ofrecen acceso alternativo a la cuenta.</value>
-  </data>
   <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
     <value>Esta acción invalidará todos los códigos actuales</value>
+  </data>
+  <data name="MFA_Recovery_Description" xml:space="preserve">
+    <value>Los códigos de recuperación son contraseñas de respaldo de un solo uso para la autenticación de dos factores. Si se pierde el segundo factor normal, ofrecen acceso alternativo a la cuenta.</value>
   </data>
 </root>
