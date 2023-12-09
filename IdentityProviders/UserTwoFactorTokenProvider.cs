@@ -19,23 +19,21 @@ namespace WebSchoolPlanner.IdentityProviders;
 public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>
     where TUser : IdentityUser
 {
-    private readonly IHttpContextAccessor _contextAccessor;
     private readonly ILogger _logger;
     private readonly IConfiguration _configuration;
     private readonly TotpAuthenticationOptions _options;
 
     private const string _tokenProvider = $"[{nameof(UserTwoFactorTokenProvider<TUser>)}]";
 
-    public UserTwoFactorTokenProvider(IHttpContextAccessor contextAccessor, ILogger<UserTwoFactorTokenProvider<TUser>> logger, IConfiguration configuration, IOptions<TotpAuthenticationOptions> options)
+    public UserTwoFactorTokenProvider(ILogger<UserTwoFactorTokenProvider<TUser>> logger, IConfiguration configuration, IOptions<TotpAuthenticationOptions> options)
     {
-        _contextAccessor = contextAccessor;
         _logger = logger;
         _configuration = configuration;
         _options = options.Value;
     }
 
     public Task<bool> CanGenerateTwoFactorTokenAsync(UserManager<TUser> manager, TUser user) =>
-        Task.FromResult(manager.SupportsUserTwoFactor && manager.SupportsUserAuthenticationTokens && !user.TwoFactorEnabled);
+        Task.FromResult(manager.SupportsUserTwoFactor && manager.SupportsUserAuthenticationTokens);
 
     public async Task<string> GenerateAsync(string purpose, UserManager<TUser> manager, TUser user)
     {
