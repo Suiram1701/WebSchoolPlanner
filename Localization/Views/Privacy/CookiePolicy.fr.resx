@@ -121,18 +121,6 @@
   <data name="FunctionalCookiesTitle" xml:space="preserve">
     <value>Cookies de fonctionnalité:</value>
   </data>
-  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
-    <value>Il s'agit d'un jeton de protection contre les attaques CSRF/XSRF (Cross-Site Request Forgery) permettant de vérifier que vous avez soumis le formulaire.</value>
-  </data>
-  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
-    <value>Il s'agit d'un jeton permettant de vous identifier en tant qu'utilisateur connecté.</value>
-  </data>
-  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
-    <value>Ce cookie mémorise si vous avez déjà cliqué sur « Je comprends » dans la fenêtre contextuelle de la politique en matière de cookies afin que nous n'ayons pas à vous en soucier à l'avenir.</value>
-  </data>
-  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
-    <value>Ce cookie stocke votre préférence quant à la langue dans laquelle nous devons vous afficher notre site Web.</value>
-  </data>
   <data name="CookieManageTitle" xml:space="preserve">
     <value>Gestion des cookies:</value>
   </data>
@@ -145,7 +133,25 @@
   <data name="CookieChange" xml:space="preserve">
     <value>Nous nous réservons le droit de mettre à jour notre politique en matière de cookies.</value>
   </data>
+  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
+    <value>Un cookie qui enregistre si la politique en matière de cookies a été acceptée permet de mémoriser le consentement de l'utilisateur et d'éviter la notification correspondante lors des visites ultérieures.</value>
+  </data>
+  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
+    <value>Un cookie de jeton CSRF protège contre la falsification de requêtes intersites (CSRF/XSRF) en stockant un jeton unique sur l'appareil de l'utilisateur. Ce jeton est utilisé sur les requêtes pour garantir qu'elles proviennent uniquement du même site Web et qu'elles n'ont pas été manipulées par des tiers malveillants.</value>
+  </data>
+  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
+    <value>Un cookie qui stocke la langue d'affichage sélectionnée par un utilisateur anonyme pour garantir un affichage cohérent de la langue pendant l'utilisation.</value>
+  </data>
+  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
+    <value>Un cookie qui stocke la session de l'utilisateur connecté afin que l'utilisateur reste connecté pendant sa session et puisse utiliser des fonctionnalités personnalisées. Ils sont supprimés à la fermeture du navigateur.</value>
+  </data>
   <data name=".AspNetCore.Theme.Description" xml:space="preserve">
-    <value>Ce cookie stocke le thème de couleur que vous préférez.</value>
+    <value>Un cookie qui stocke temporairement le thème de couleur d'un utilisateur anonyme pour garantir une expérience visuelle cohérente tout au long de la session.</value>
+  </data>
+  <data name="Identity.TwoFactorRememberMe.Description" xml:space="preserve">
+    <value>Un cookie dont l'appareil se souvient pour d'autres demandes d'authentification à 2 facteurs. Cela marque l'appareil comme étant fiable et peut simplifier les futures demandes 2FA.</value>
+  </data>
+  <data name="Identity.TwoFactorUserId.Description" xml:space="preserve">
+    <value>Un cookie temporaire requis pour l'authentification à 2 facteurs en stockant temporairement des informations sur l'appareil pour garantir la sécurité et une vérification transparente.</value>
   </data>
 </root>

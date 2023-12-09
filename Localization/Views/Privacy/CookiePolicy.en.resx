@@ -121,18 +121,6 @@
   <data name="FunctionalCookiesTitle" xml:space="preserve">
     <value>Functionality cookies:</value>
   </data>
-  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
-    <value>This is a token to protect against CSRF/XSRF (Cross-Site Request Forgery) attacks to verify that you have submitted the form.</value>
-  </data>
-  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
-    <value>This is a token to identify you as a logged in user.</value>
-  </data>
-  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
-    <value>This cookie remembers whether you have already clicked "I understand" in the cookie policy pop-up so that we do not have to bother you about it in the future.</value>
-  </data>
-  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
-    <value>This cookie stores your preference as to the language in which we should display our website to you.</value>
-  </data>
   <data name="CookieManageTitle" xml:space="preserve">
     <value>Cookie management:</value>
   </data>
@@ -145,7 +133,25 @@
   <data name="CookieChange" xml:space="preserve">
     <value>We reserve the right to update our cookie policy.</value>
   </data>
+  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
+    <value>A cookie that stores whether the cookie policy has been accepted makes it possible to remember the user's consent and avoid the corresponding notification on subsequent visits.</value>
+  </data>
+  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
+    <value>A CSRF token cookie protects against Cross-Site Request Forgery (CSRF/XSRF) by storing a unique token on the user's device. This token is used on requests to ensure that they only come from the same website and have not been manipulated by malicious third parties.</value>
+  </data>
+  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
+    <value>A cookie that stores an anonymous user's selected display language to ensure consistent language display during use.</value>
+  </data>
+  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
+    <value>A cookie that stores the logged in user's session so that the user remains logged in during their session and can use personalized features. They are deleted when the browser is closed.</value>
+  </data>
   <data name=".AspNetCore.Theme.Description" xml:space="preserve">
-    <value>This cookie stores the color theme you prefer.</value>
+    <value>A cookie that temporarily stores an anonymous user's color theme to ensure a consistent visual experience throughout the session.</value>
+  </data>
+  <data name="Identity.TwoFactorRememberMe.Description" xml:space="preserve">
+    <value>A cookie that the device remembers for further 2-factor authentication requests. This marks the device as trusted and can simplify future 2FA requests.</value>
+  </data>
+  <data name="Identity.TwoFactorUserId.Description" xml:space="preserve">
+    <value>A temporary cookie required for 2-factor authentication by temporarily storing information on the device to ensure security and seamless verification.</value>
   </data>
 </root>

@@ -187,7 +187,11 @@ public sealed class AuthController : Controller
                 string tokenProvider = _userManager.Options.Tokens.AuthenticatorTokenProvider;
                 bool verifyResult = await _userManager.VerifyTwoFactorTokenAsync(user!, tokenProvider, model.Code);
                 if (verifyResult)     // Success
-                    return await Handle2faConfirmationRequest(user!, returnUrl, reason);
+                {
+                    IActionResult handledConfirmation = await Handle2faConfirmationRequest(user!, returnUrl, reason);
+                    _logger.LogInformation("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
+                    return handledConfirmation;
+                }
 
                 // Confirmation failed
                 _logger.LogInformation("2fa confirmation for reason '{1}' failed for user {0}", user!.Id, reason);
@@ -229,8 +233,6 @@ public sealed class AuthController : Controller
     [NonAction]
     private async Task<IActionResult> Handle2faConfirmationRequest(User user, string? returnUrl, string reason)
     {
-        string successfulLogText = string.Format("2fa confirmation for reason '{1}' succeeded for user {0}", user!.Id, reason);
-
         IdentityResult result = IdentityResult.Success;
         switch (reason)
         {
@@ -240,35 +242,20 @@ public sealed class AuthController : Controller
                     break;
 
                 result = await _userManager.RemoveTwoFactorSecretAsync(user);
+                if (!result.Succeeded)
+                    break;
                 _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
+
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
                 break;
             case "create2faRecovery":
-                MfaRecoveryOptions options = HttpContext.RequestServices.GetService<IOptions<MfaRecoveryOptions>>()!.Value;
-
-                IEnumerable<string>? codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, options.CodeCount);
-                if (codes is null)
-                {
-                    result = IdentityResult.Failed(new IdentityError
-                    {
-                        Code = (-1).ToString(),
-                        Description = "An error happend while updating recovery codes"
-                    });
-                }
-
-                // Code display
-                _logger.LogInformation(successfulLogText);
-                ViewBag.ReturnUrl = returnUrl;
-                return View("Create2faRecovery", codes!);
+                (IActionResult? resultView, IdentityResult error) = await Create2faRecoveryAsync(user, returnUrl);
+                if (error.Succeeded)
+                    return resultView!;
+                result = error;
+                break;
             case "remove2faRecovery":
-                object? resultObj = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, 0);
-                if (resultObj is null)     // An error happend
-                {
-                    result = IdentityResult.Failed(new IdentityError
-                    {
-                        Code = (-1).ToString(),
-                        Description = "An error happend while updating recovery codes"
-                    });
-                }
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
                 break;
             default:
                 throw new ArgumentException("The specified confirmation reason could not be found.", nameof(reason));
@@ -282,8 +269,28 @@ public sealed class AuthController : Controller
             throw new Exception(string.Format("An occurred error happend while executing 2fa confirmation reason '{0}'", reason));
         }
 
-        _logger.LogInformation(successfulLogText);
         return this.RedirectToReturnUrl(returnUrl);
+    }
+
+    private async Task<(IActionResult? result, IdentityResult error)> Create2faRecoveryAsync(User user, string? returnUrl)
+    {
+        MfaRecoveryOptions options = HttpContext.RequestServices.GetService<IOptions<MfaRecoveryOptions>>()!.Value;
+
+        IEnumerable<string>? codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, options.CodeCount);
+        if (codes is null)
+        {
+            IdentityResult failedResult = IdentityResult.Failed(new IdentityError
+            {
+                Code = nameof(Create2faRecoveryAsync),
+                Description = "An error happend while creating new 2fa recovery codes"
+            });
+            return (null, failedResult);
+        }
+
+        // Code display
+        ViewBag.ReturnUrl = returnUrl;
+        IActionResult view = View("Create2faRecovery", codes!);
+        return (view, IdentityResult.Success);
     }
 
     /// <summary>

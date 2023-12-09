@@ -121,18 +121,6 @@
   <data name="FunctionalCookiesTitle" xml:space="preserve">
     <value>Функциональные файлы cookie:</value>
   </data>
-  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
-    <value>Это токен для защиты от атак CSRF/XSRF (подделка межсайтовых запросов) для проверки того, что вы отправили форму.</value>
-  </data>
-  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
-    <value>Это токен, позволяющий идентифицировать вас как вошедшего в систему пользователя.</value>
-  </data>
-  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
-    <value>Этот файл cookie запоминает, нажимали ли вы уже «Я понимаю» во всплывающем окне политики использования файлов cookie, чтобы нам не пришлось беспокоить вас по этому поводу в будущем.</value>
-  </data>
-  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
-    <value>Этот файл cookie сохраняет ваши предпочтения в отношении языка, на котором мы должны отображать вам наш веб-сайт.</value>
-  </data>
   <data name="CookieManageTitle" xml:space="preserve">
     <value>Управление файлами cookie:</value>
   </data>
@@ -145,7 +133,25 @@
   <data name="CookieChange" xml:space="preserve">
     <value>Мы оставляем за собой право обновлять нашу политику использования файлов cookie.</value>
   </data>
+  <data name=".AspNetCore.acceptCookiePolicy.Description" xml:space="preserve">
+    <value>Файл cookie, который сохраняет информацию о том, была ли принята политика использования файлов cookie, позволяет запомнить согласие пользователя и избежать соответствующего уведомления при последующих посещениях.</value>
+  </data>
+  <data name=".AspNetCore.CSRF.TOKEN.Description" xml:space="preserve">
+    <value>Файл cookie токена CSRF защищает от подделки межсайтовых запросов (CSRF/XSRF), сохраняя уникальный токен на устройстве пользователя. Этот токен используется в запросах, чтобы гарантировать, что они поступают только с одного и того же веб-сайта и не подвергаются манипуляциям со стороны злонамеренных третьих лиц.</value>
+  </data>
+  <data name=".AspNetCore.Culture.Description" xml:space="preserve">
+    <value>Файл cookie, в котором сохраняется выбранный анонимным пользователем язык отображения, чтобы обеспечить согласованное отображение языка во время использования.</value>
+  </data>
+  <data name=".AspNetCore.Identity.Application.Description" xml:space="preserve">
+    <value>Файл cookie, который сохраняет сеанс вошедшего в систему пользователя, чтобы пользователь оставался в системе во время сеанса и мог использовать персонализированные функции. Они удаляются при закрытии браузера.</value>
+  </data>
   <data name=".AspNetCore.Theme.Description" xml:space="preserve">
-    <value>Этот файл cookie сохраняет предпочитаемую вами цветовую тему.</value>
+    <value>Файл cookie, который временно сохраняет цветовую тему анонимного пользователя, чтобы обеспечить единообразие визуального восприятия на протяжении всего сеанса.</value>
+  </data>
+  <data name="Identity.TwoFactorRememberMe.Description" xml:space="preserve">
+    <value>Файл cookie, который устройство запоминает для дальнейших запросов двухфакторной аутентификации. Это помечает устройство как доверенное и может упростить будущие запросы 2FA.</value>
+  </data>
+  <data name="Identity.TwoFactorUserId.Description" xml:space="preserve">
+    <value>Временный файл cookie, необходимый для двухфакторной аутентификации путем временного хранения информации на устройстве для обеспечения безопасности и бесперебойной проверки.</value>
   </data>
 </root>
