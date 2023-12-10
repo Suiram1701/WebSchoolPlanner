@@ -242,10 +242,14 @@ public sealed class AuthController : Controller
                 if (!result.Succeeded)
                     break;
 
+                // Remove secret
                 UserTwoFactorTokenProvider<User> mfaTokenProvider = HttpContext.RequestServices.GetService<UserTwoFactorTokenProvider<User>>()!;
                 result = await mfaTokenProvider.RemoveAsync(_userManager, user, "TwoFactor");
                 if (!result.Succeeded)
                     break;
+
+                if (await _signInManager.IsTwoFactorClientRememberedAsync(user))
+                    await _signInManager.ForgetTwoFactorClientAsync();
                 _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
 
                 result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);

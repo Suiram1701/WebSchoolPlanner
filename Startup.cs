@@ -25,6 +25,7 @@ using OtpNet;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Authorization.Infrastructure;
 using WebSchoolPlanner.Authorization;
+using WebSchoolPlanner.IdentityProviders.EmailSenders;
 
 namespace WebSchoolPlanner;
 
@@ -178,6 +179,24 @@ public class Startup
                 throw new ArgumentException(string.Format("A integer value greater than 0 was expected in the configuration file (configuration path: '{0}')", configurationPath));
 
             options.CodeCount = codeCount;
+        });
+
+        // Email (SendGrid)
+        services.AddTransient<IEmailSender<User>, SendGridEmailSender<User>>();
+        services.AddOptions<SendGridOptions>().Configure(options =>
+        {
+            const string sendGridPrefix = "SendGrid:";
+            const string sendGridApiPrefix = sendGridPrefix + "ApiKey";
+            options.ApiKey = _configuration[sendGridApiPrefix]
+                ?? throw new ArgumentNullException(string.Format("No SendGrid api key is specified. (configuration path: {0})", sendGridApiPrefix));
+
+            const string sendGridSenderEmailPrefix = sendGridPrefix + "Sender:Email";
+            string senderEmail = _configuration[sendGridSenderEmailPrefix]
+                ?? throw new ArgumentNullException(string.Format("No SendGrid sender email is specified. (configuration path {0})", sendGridSenderEmailPrefix));
+            const string sendGridSenderNamePrefix = sendGridPrefix + "Sender:Name";
+            string senderName = _configuration[sendGridSenderNamePrefix]
+            ?? throw new ArgumentNullException(string.Format("No SendGrid sender name is specified. (configuration path {0})", sendGridSenderNamePrefix));
+            options.FromAddress = new(senderEmail, senderName);
         });
 
         // Security
