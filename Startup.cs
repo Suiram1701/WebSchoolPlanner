@@ -101,7 +101,6 @@ public class Startup
             services.AddSwagger();
 
         // Database / authentication
-        const string TFATokenProvider = "2FA_Token_Provider";
         services
             .AddDbContext<WebSchoolPlannerDbContext>(options =>
             {
@@ -117,12 +116,13 @@ public class Startup
                 options.Lockout.MaxFailedAccessAttempts = maxFailedLoginAttempts;
                 options.Lockout.DefaultLockoutTimeSpan = TimeSpan.FromSeconds(lockOutSeconds);
 
-                options.Tokens.AuthenticatorTokenProvider = TFATokenProvider;
+                options.Tokens.AuthenticatorTokenProvider = UserTwoFactorTokenProvider<User>.ProviderName;
             })
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders()
             .AddClaimsPrincipalFactory<UserClaimsPrincipialFactory<User, Role>>()
-            .AddTokenProvider<UserTwoFactorTokenProvider<User>>(TFATokenProvider);
+            .AddTokenProvider<UserTwoFactorTokenProvider<User>>(UserTwoFactorTokenProvider<User>.ProviderName)
+            .AddTokenProvider<UserEmailTwoFactorTokenProvider<User>>(UserEmailTwoFactorTokenProvider<User>.ProviderName);
         services.AddSingleton<UserImageStore<User>, UserImageStore<User>>();
 
         // Options
@@ -180,9 +180,19 @@ public class Startup
 
             options.CodeCount = codeCount;
         });
+        services.AddOptions<EmailTwoFactorOptions>().Configure(options =>
+        {
+            const string configurationPath = AuthenticationConfigurationPrefix + "Email2fa:Expires";
+            string expirationTimeString = _configuration[configurationPath]
+                ?? 3600.ToString();
+            if (!int.TryParse(expirationTimeString, out int expirationTime) || expirationTime <= 0)
+                throw new ArgumentException(string.Format("A integer larger than 0 was expected. (configuration path: {0})", configurationPath));
+
+            options.ExpirationTime = expirationTime;
+        });
 
         // Email (SendGrid)
-        services.AddTransient<IEmailSender<User>, SendGridEmailSender<User>>();
+        services.AddTransient<EmailSenderBase<User>, SendGridEmailSender<User>>();
         services.AddOptions<SendGridOptions>().Configure(options =>
         {
             const string sendGridPrefix = "SendGrid:";

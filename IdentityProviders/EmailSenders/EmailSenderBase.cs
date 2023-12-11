@@ -41,4 +41,16 @@ public abstract class EmailSenderBase<TUser> : IEmailSender<TUser>
     {
         throw new NotImplementedException();
     }
+
+    /// <summary>
+    /// Send an email to confirm users 2fa
+    /// </summary>
+    /// <param name="user">The user to confirm</param>
+    /// <param name="email">The recipient email (this should be the users email)</param>
+    /// <param name="code">The code to send</param>
+    /// <returns>The task</returns>
+    public Task SendTwoFactorCodeAsync(TUser user, string email, string code)
+    {
+        throw new NotImplementedException();
+    }
 }

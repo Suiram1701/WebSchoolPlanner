@@ -19,16 +19,19 @@ namespace WebSchoolPlanner.IdentityProviders;
 public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>
     where TUser : IdentityUser
 {
+    /// <summary>
+    /// The name of this provider
+    /// </summary>
+    public const string ProviderName = $"[{nameof(UserTwoFactorTokenProvider<TUser>)}]";
+
     private readonly ILogger _logger;
-    private readonly IConfiguration _configuration;
+    private readonly IDataProtectionProvider _dataProtectorProvider;
     private readonly TotpAuthenticationOptions _options;
 
-    private const string _tokenProvider = $"[{nameof(UserTwoFactorTokenProvider<TUser>)}]";
-
-    public UserTwoFactorTokenProvider(ILogger<UserTwoFactorTokenProvider<TUser>> logger, IConfiguration configuration, IOptions<TotpAuthenticationOptions> options)
+    public UserTwoFactorTokenProvider(ILogger<UserTwoFactorTokenProvider<TUser>> logger, IDataProtectionProvider dataProtectorProvider, IOptions<TotpAuthenticationOptions> options)
     {
         _logger = logger;
-        _configuration = configuration;
+        _dataProtectorProvider = dataProtectorProvider;
         _options = options.Value;
     }
 
@@ -37,9 +40,12 @@ public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUs
 
     public async Task<string> GenerateAsync(string purpose, UserManager<TUser> manager, TUser user)
     {
+        // Create a token and protect it
         string base32Secret = manager.GenerateNewAuthenticatorKey();
+        string protectedSecret = TokenHelpers.ProtectToken(base32Secret, _dataProtectorProvider.CreateProtector(purpose));
 
-        IdentityResult result = await manager.SetAuthenticationTokenAsync(user, _tokenProvider, purpose, base32Secret);
+        // Save it
+        IdentityResult result = await manager.SetAuthenticationTokenAsync(user, ProviderName, purpose, protectedSecret);
         if (!result.Succeeded)
         {
             string errorJson = JsonConvert.SerializeObject(result.Errors);
@@ -52,9 +58,12 @@ public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUs
 
     public async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
     {
-        string? base32Secret = await manager.GetAuthenticationTokenAsync(user, _tokenProvider, purpose);
-        if (string.IsNullOrEmpty(base32Secret))     // No secret is available
+        // Read an unprotect it
+        string? protectedSecret = await manager.GetAuthenticationTokenAsync(user, ProviderName, purpose);
+        if (string.IsNullOrEmpty(protectedSecret))     // No secret is available
             throw new InvalidOperationException("There isn't a totp secret set for the specified user.");
+
+        string base32Secret = TokenHelpers.UnprotectToken(protectedSecret, _dataProtectorProvider.CreateProtector(purpose));
         byte[] secret = Base32Encoding.ToBytes(base32Secret);
 
         // Verify
@@ -72,6 +81,6 @@ public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUs
     /// <returns>The result state</returns>
     public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
-        return await manager.RemoveAuthenticationTokenAsync(user, _tokenProvider, purpose);
+        return await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
     }
 }
