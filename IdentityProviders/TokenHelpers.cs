@@ -54,7 +54,7 @@ public static class TokenHelpers
     }
 
     /// <summary>
-    /// Unpretect a by the <see cref="ProtectToken(string, IDataProtector)"/> method protected token
+    /// Unprotect a by the <see cref="ProtectToken(string, IDataProtector)"/> method protected token
     /// </summary>
     /// <param name="token">The token to unprotect</param>
     /// <param name="dataProtector">The token protector</param>
