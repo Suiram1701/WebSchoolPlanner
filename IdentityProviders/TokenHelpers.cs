@@ -33,11 +33,12 @@ public static class TokenHelpers
     public static string GenerateFormattedCode()
     {
         IEnumerable<char> chars = GenerateRandomChars(10);
-        StringBuilder formattedCodeBuilder = new StringBuilder(11)
-            .Append(chars.Take(..5))
+        StringBuilder builder = new StringBuilder(11)
+            .Append(chars.Take(..5).ToArray())
             .Append('-')
-            .Append(chars.Take(5..));
-        return formattedCodeBuilder.ToString();
+            .Append(chars.Take(5..).ToArray());
+
+        return builder.ToString();
     }
 
     /// <summary>

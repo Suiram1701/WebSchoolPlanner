@@ -28,7 +28,7 @@ public static class Enums
     /// <summary>
     /// Provides a list of supported 2fa sign in methods
     /// </summary>
-    public enum TwoFactorMethods
+    public enum TwoFactorMethod
     {
         /// <summary>
         /// Sign in via authentication app

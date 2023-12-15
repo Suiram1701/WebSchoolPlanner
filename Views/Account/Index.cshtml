@@ -1,4 +1,5 @@
-﻿@inject IViewLocalizer _localizer;
+﻿@using WebSchoolPlanner.Extensions
+@inject IViewLocalizer _localizer;
 @inject SignInManager<User> _signInManager;
 @inject UserManager<User> _userManager;
 
@@ -93,7 +94,7 @@
                     </div>
 
                     @{
-                        int codeCount = await _userManager.CountRecoveryCodesAsync(user);
+                        int codeCount = await _userManager.CountTwoFactorRecoveryCodesAsync(user, Context.RequestServices);
                     }
                     @if (mfaRecoveryEnabled)
                     {

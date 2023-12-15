@@ -20,7 +20,7 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
     private readonly IPasswordHasher<TUser> _passwordHasher;
     private readonly IOptions<MfaRecoveryOptions> _optionsAccessor;
 
-    public UserTwoFactorRecoveryProvider(ILogger logger, IPasswordHasher<TUser> passwordHasher, IOptions<MfaRecoveryOptions> optionsAccessor)
+    public UserTwoFactorRecoveryProvider(ILogger<UserTwoFactorRecoveryProvider<TUser>> logger, IPasswordHasher<TUser> passwordHasher, IOptions<MfaRecoveryOptions> optionsAccessor)
     {
         _logger = logger;
         _passwordHasher = passwordHasher;
@@ -37,13 +37,19 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
         ArgumentNullException.ThrowIfNull(user, nameof(user));
 
         // Generate new codes
-        JArray codes = new();
+        List<string> codeList = new();
         int codeCount = _optionsAccessor.Value.CodeCount;
         for (int i = 0; i < codeCount; i++)
+            codeList.Add(TokenHelpers.GenerateFormattedCode());
+        DistinctCodes(ref codeList);
+
+        JArray codes = new();
+        foreach (string code in codeList)
         {
-            string code = TokenHelpers.GenerateFormattedCode();
-            codes.Add(_passwordHasher.HashPassword(user, code));
+            string hashedCode = _passwordHasher.HashPassword(user, code);
+            codes.Add(hashedCode);
         }
+
         string jsonContent = codes.ToString();
 
         IdentityResult result = await manager.SetAuthenticationTokenAsync(user, ProviderName, purpose, jsonContent);
@@ -54,7 +60,8 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
             throw new Exception("Unable to save two factor recovery codes");
         }
 
-        return string.Join(';', codes.Select(rc => rc.Value<string>()));
+        _logger.LogInformation("New 2fa recovery codes for user {0} generated and saved", user.Id);
+        return string.Join(';', codeList);
     }
 
     public async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
@@ -99,13 +106,36 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
     }
 
     /// <summary>
+    /// Removes all recovery codes for the specified user
+    /// </summary>
+    /// <param name="manager">The userManager to use</param>
+    /// <param name="user">The user</param>
+    /// <param name="purpose">The purpose of the token to remove</param>
+    /// <returns>The result</returns>
+    public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
+    {
+        ArgumentNullException.ThrowIfNull(user, nameof(user));
+
+        IdentityResult result = await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
+        if (result.Succeeded)
+            _logger.LogInformation("2fa recovery codes for user {0} removed", user.Id);
+        else
+        {
+            string jsonContent = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An error happened while removing 2fa recovery codes for user {0}", user.Id);
+        }
+
+        return result;
+    }
+
+    /// <summary>
     /// Counts all valid 2fa recovery codes of the specified user
     /// </summary>
     /// <param name="purpose">The pupose of the token to count</param>
     /// <param name="manager">The user manager to use</param>
     /// <param name="user">The user</param>
     /// <returns>The count</returns>
-    public async Task<int> CountCodesAsync(string purpose, UserManager<TUser> manager, TUser user)
+    public async Task<int> CountCodesAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
         ArgumentNullException.ThrowIfNullOrWhiteSpace(purpose, nameof(purpose));
         ArgumentNullException.ThrowIfNull(manager, nameof(manager));
@@ -135,15 +165,18 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
     }
 
     /// <summary>
-    /// Removes all recovery codes for the specified user
+    /// Regenerate all duplicate codes in the list
     /// </summary>
-    /// <param name="manager">The userManager to use</param>
-    /// <param name="user">The user</param>
-    /// <param name="purpose">The purpose of the token to remove</param>
-    /// <returns>The result</returns>
-    public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
+    /// <param name="codes">The list</param>
+    private void DistinctCodes(ref List<string> codes)
     {
-        ArgumentNullException.ThrowIfNull(user, nameof(user));
-        return await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
+        int count = codes.Count;
+        codes = codes.Distinct().ToList();
+        
+        if (count != codes.Count)
+        {
+            codes.Add(TokenHelpers.GenerateFormattedCode());
+            DistinctCodes(ref codes);
+        }
     }
 }

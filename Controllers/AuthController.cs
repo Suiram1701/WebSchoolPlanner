@@ -178,6 +178,12 @@ public sealed class AuthController : Controller
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
         user ??= await _userManager.GetUserAsync(User);
 
+        if (user is null)     // Requires an authenticated user
+        {
+            await HttpContext.ForbidAsync();
+            return StatusCode(Response.StatusCode);
+        }
+
         ViewBag.ConfirmationReason = reason;
         model.Code = model.Code.Replace(" ", string.Empty);
         if (ModelState.IsValid)
@@ -185,9 +191,7 @@ public sealed class AuthController : Controller
             // Handles the reason of a 2fa confirmation
             if (!string.IsNullOrEmpty(reason))
             {
-                string tokenProvider = _userManager.Options.Tokens.AuthenticatorTokenProvider;
-                bool verifyResult = await _userManager.VerifyTwoFactorTokenAsync(user!, tokenProvider, model.Code);
-                if (verifyResult)     // Success
+                if (await _userManager.VerifyTwoFactorAsync(user, model.TwoFactorMethod, model.Code))     // Success
                 {
                     IActionResult handledConfirmation = await Handle2faConfirmationRequest(user!, returnUrl, reason);
                     _logger.LogInformation("2fa confirmation for reason '{0}' succeeded for user {1}", reason, user!.Id);
@@ -203,7 +207,7 @@ public sealed class AuthController : Controller
             if (await CheckMfaConditionsAsync(user, returnUrl) is IActionResult result)
                 return result;
 
-            SignInResult signInResult = await _signInManager.TwoFactorAuthenticatorSignInAsync(model.Code, false, model.RememberMe);
+            SignInResult signInResult = await _signInManager.TwoFactorSignInAsync(model.TwoFactorMethod, model.Code, model.RememberMe);
             if (signInResult.Succeeded)     // Success
             {
                 _logger.LogInformation("2fa login from user {0}", user!.Id);
@@ -242,9 +246,16 @@ public sealed class AuthController : Controller
                 if (!result.Succeeded)
                     break;
 
-                // Remove secret
-                UserTwoFactorTokenProvider<User> mfaTokenProvider = HttpContext.RequestServices.GetService<UserTwoFactorTokenProvider<User>>()!;
-                result = await mfaTokenProvider.RemoveAsync(_userManager, user, "TwoFactor");
+                // Remove every secret
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user, HttpContext.RequestServices);
+                if (!result.Succeeded)
+                    break;
+
+                result = await _userManager.RemoveTwoFactorSecretAsync(user, HttpContext.RequestServices);
+                if (!result.Succeeded)
+                    break;
+
+                result = await _userManager.RemoveEmailTwoFactorTokenAsync(user, HttpContext.RequestServices);
                 if (!result.Succeeded)
                     break;
 
@@ -252,7 +263,7 @@ public sealed class AuthController : Controller
                     await _signInManager.ForgetTwoFactorClientAsync();
                 _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
 
-                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user, HttpContext.RequestServices);
                 break;
             case "create2faRecovery":
                 (IActionResult? resultView, IdentityResult error) = await Create2faRecoveryAsync(user, returnUrl);
@@ -261,7 +272,7 @@ public sealed class AuthController : Controller
                 result = error;
                 break;
             case "remove2faRecovery":
-                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user, HttpContext.RequestServices);
                 break;
             default:
                 throw new ArgumentException("The specified confirmation reason could not be found.", nameof(reason));
@@ -283,7 +294,7 @@ public sealed class AuthController : Controller
     {
         MfaRecoveryOptions options = HttpContext.RequestServices.GetService<IOptions<MfaRecoveryOptions>>()!.Value;
 
-        IEnumerable<string>? codes = await _userManager.GenerateNewTwoFactorRecoveryCodesAsync(user, options.CodeCount);
+        IEnumerable<string>? codes = await _userManager.GenerateTwoFactorRecoveryCodesAsync(user);
         if (codes is null)
         {
             IdentityResult failedResult = IdentityResult.Failed(new IdentityError

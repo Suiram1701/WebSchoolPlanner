@@ -53,6 +53,7 @@ public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUs
             throw new Exception(string.Format("An occurred error happened while generating 2fa token"));
         }
 
+        _logger.LogInformation("New 2fa secret for user {0} generated and saved", user.Id);
         return base32Secret;
     }
 
@@ -81,6 +82,15 @@ public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUs
     /// <returns>The result state</returns>
     public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
-        return await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
+        IdentityResult result = await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
+        if (result.Succeeded)
+            _logger.LogInformation("2fa secret for use {0} removed", user.Id);
+        else
+        {
+            string jsonError = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An error happened while removing 2fa secret for user {0}; Error: {1}", user.Id, jsonError);
+        }
+
+        return result;
     }
 }

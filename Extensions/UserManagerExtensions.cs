@@ -8,7 +8,21 @@ namespace WebSchoolPlanner.Extensions;
 
 public static class UserManagerExtensions
 {
-    private const string _twoFactorProvider = "TwoFactor";
+    /// <summary>
+    /// Removes the teo factor app secret of the specified user
+    /// </summary>
+    /// <typeparam name="TUser">The type of the user</typeparam>
+    /// <param name="userManager">The user manager to use</param>
+    /// <param name="user">The user that owns the secret</param>
+    /// <param name="serviceProvider">The provider to access a required service</param>
+    /// <returns>The result</returns>
+    public static async Task<IdentityResult> RemoveTwoFactorSecretAsync<TUser>(this UserManager<TUser> userManager, TUser user, IServiceProvider serviceProvider)
+        where TUser : IdentityUser
+    {
+        UserTwoFactorTokenProvider<TUser> provider = serviceProvider.GetService<UserTwoFactorTokenProvider<TUser>>()!;
+        string purpose = Helpers.GetTwoFactorPurpose(TwoFactorMethod.App);
+        return await provider.RemoveAsync(userManager, user, purpose);
+    }
 
     /// <summary>
     /// Generates an two factor code for email confirmation
@@ -24,7 +38,8 @@ public static class UserManagerExtensions
         where TUser : IdentityUser
     {
         string provider = UserEmailTwoFactorTokenProvider<TUser>.ProviderName;
-        return await userManager.GenerateUserTokenAsync(user, provider, _twoFactorProvider);
+        string purpose = Helpers.GetTwoFactorPurpose(TwoFactorMethod.Email);
+        return await userManager.GenerateUserTokenAsync(user, provider, purpose);
     }
 
     /// <summary>
@@ -39,7 +54,8 @@ public static class UserManagerExtensions
         where TUser : IdentityUser
     {
         UserEmailTwoFactorTokenProvider<TUser> provider = serviceProvider.GetService<UserEmailTwoFactorTokenProvider<TUser>>()!;
-        return await provider.RemoveAsync(userManager, user, _twoFactorProvider);
+        string purpose = Helpers.GetTwoFactorPurpose(TwoFactorMethod.Email);
+        return await provider.RemoveAsync(userManager, user, purpose);
     }
 
     /// <summary>
@@ -53,8 +69,25 @@ public static class UserManagerExtensions
         where TUser : IdentityUser
     {
         string provider = UserTwoFactorRecoveryProvider<TUser>.ProviderName;
-        string codes = await userManager.GenerateTwoFactorTokenAsync(user, provider);
+        string purpose = Helpers.GetTwoFactorPurpose(TwoFactorMethod.Recovery);
+        string codes = await userManager.GenerateUserTokenAsync(user, provider, purpose);
         return codes.Split(';');
+    }
+
+    /// <summary>
+    /// Get the count of all valid two factor recovery codes
+    /// </summary>
+    /// <typeparam name="TUser">The type of the user</typeparam>
+    /// <param name="userManager">The user manager to use</param>
+    /// <param name="user">The user that owns the codes</param>
+    /// <param name="serviceProvider">The provider to access a required service</param>
+    /// <returns>The count of the valid codes</returns>
+    public static async Task<int> CountTwoFactorRecoveryCodesAsync<TUser>(this UserManager<TUser> userManager, TUser user, IServiceProvider serviceProvider)
+        where TUser : IdentityUser
+    {
+        UserTwoFactorRecoveryProvider<TUser> provider = serviceProvider.GetService<UserTwoFactorRecoveryProvider<TUser>>()!;
+        string purpose = Helpers.GetTwoFactorPurpose(TwoFactorMethod.Recovery);
+        return await provider.CountCodesAsync(userManager, user, purpose);
     }
 
     /// <summary>
@@ -69,6 +102,15 @@ public static class UserManagerExtensions
         where TUser : IdentityUser
     {
         UserTwoFactorRecoveryProvider<TUser> provider = serviceProvider.GetService<UserTwoFactorRecoveryProvider<TUser>>()!;
-        return await provider.RemoveAsync(userManager, user, _twoFactorProvider);
+        string purpose = Helpers.GetTwoFactorPurpose(TwoFactorMethod.Recovery);
+        return await provider.RemoveAsync(userManager, user, purpose);
+    }
+
+    public static async Task<bool> VerifyTwoFactorAsync<TUser>(this UserManager<TUser> userManager, TUser user, TwoFactorMethod method, string token)
+        where TUser : IdentityUser
+    {
+        string provider = Helpers.DetermineProviderName<TUser>(method, userManager.Logger);
+        string purpose = Helpers.GetTwoFactorPurpose(method);
+        return await userManager.VerifyUserTokenAsync(user, provider, purpose, token);
     }
 }

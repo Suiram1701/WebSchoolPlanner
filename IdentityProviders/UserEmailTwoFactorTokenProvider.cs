@@ -52,6 +52,7 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
             throw new Exception("An error happened while trying to generate 2fa emailt code.");
         }
 
+        _logger.LogInformation("New email confirmation code generated for user {0}; Expires: {1}", user.Id, validOffset.ToString("s"));
         return formattedCode;
     }
 
@@ -61,26 +62,18 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
         if (string.IsNullOrEmpty(tokenJson))     // No email confirmation requested
             return false;
 
-        try
+        TokenModel model = JsonConvert.DeserializeObject<TokenModel>(tokenJson)!;
+        if (model.IssuedAt > DateTime.UtcNow || model.Expires < DateTime.UtcNow)     // expired or not valid yet
         {
-            TokenModel model = JsonConvert.DeserializeObject<TokenModel>(tokenJson)!;
-            if (model.IssuedAt > DateTime.UtcNow || model.Expires < DateTime.UtcNow)     // expired or not valid yet
-            {
-                await RemoveAsync(manager, user, purpose);
-                return false;
-            }
-
-            bool result = model.ValidateToken(_passwordHasher, user, token);
-            if (result)
-                await RemoveAsync(manager, user, purpose);
-
-            return result;
-        }
-        catch (Exception ex)
-        {
-            _logger.LogError("Unable to validate 2fa email code of user {0}; Error: {1}", user.Id, ex.Message);
+            await RemoveAsync(manager, user, purpose);
             return false;
         }
+
+        bool result = model.ValidateToken(_passwordHasher, user, token);
+        if (result)
+            await RemoveAsync(manager, user, purpose);
+
+        return result;
     }
 
     /// <summary>
@@ -92,7 +85,16 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
     /// <returns>The result</returns>
     public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
-        return await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
+        IdentityResult result = await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
+        if (result.Succeeded)
+            _logger.LogInformation("Email confirmation code for user {0} removed", user.Id);
+        else
+        {
+            string jsonContent = JsonConvert.SerializeObject(result.Errors);
+            _logger.LogError("An error happened while removing 2fa code for user {0}", user.Id);
+        }
+
+        return result;
     }
 
     /// <summary>
