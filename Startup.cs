@@ -121,8 +121,7 @@ public class Startup
             .AddEntityFrameworkStores<WebSchoolPlannerDbContext>()
             .AddDefaultTokenProviders()
             .AddClaimsPrincipalFactory<UserClaimsPrincipialFactory<User, Role>>()
-            .AddTokenProvider<UserTwoFactorTokenProvider<User>>(UserTwoFactorTokenProvider<User>.ProviderName)
-            .AddTokenProvider<UserEmailTwoFactorTokenProvider<User>>(UserEmailTwoFactorTokenProvider<User>.ProviderName);
+            .AddTwoFactorTokenProviders<User>();
         services.AddSingleton<UserImageStore<User>, UserImageStore<User>>();
 
         // Options

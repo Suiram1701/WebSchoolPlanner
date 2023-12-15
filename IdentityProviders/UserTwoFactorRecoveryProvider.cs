@@ -4,7 +4,6 @@ using Newtonsoft.Json;
 using System.Text;
 using Microsoft.Extensions.Options;
 using WebSchoolPlanner.Options;
-using System.Net.Http.Json;
 using System.Security.Cryptography;
 
 namespace WebSchoolPlanner.IdentityProviders;
