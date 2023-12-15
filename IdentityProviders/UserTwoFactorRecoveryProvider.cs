@@ -18,11 +18,13 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
     public const string ProviderName = $"[{nameof(UserTwoFactorRecoveryProvider<TUser>)}]";
 
     private readonly ILogger _logger;
+    private readonly IPasswordHasher<TUser> _passwordHasher;
     private readonly IOptions<MfaRecoveryOptions> _optionsAccessor;
 
-    public UserTwoFactorRecoveryProvider(ILogger logger, IOptions<MfaRecoveryOptions> optionsAccessor)
+    public UserTwoFactorRecoveryProvider(ILogger logger, IPasswordHasher<TUser> passwordHasher, IOptions<MfaRecoveryOptions> optionsAccessor)
     {
         _logger = logger;
+        _passwordHasher = passwordHasher;
         _optionsAccessor = optionsAccessor;
     }
 
@@ -36,15 +38,14 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
         ArgumentNullException.ThrowIfNull(user, nameof(user));
 
         // Generate new codes
-        List<string> recoveryCodes = new();
+        JArray codes = new();
         int codeCount = _optionsAccessor.Value.CodeCount;
         for (int i = 0; i < codeCount; i++)
-            recoveryCodes.Add(TokenHelpers.GenerateFormattedCode());
-
-        JArray jArray = new();
-        foreach (string code in recoveryCodes)
-            jArray.Add(HashString(code));
-        string jsonContent = jArray.ToString();
+        {
+            string code = TokenHelpers.GenerateFormattedCode();
+            codes.Add(_passwordHasher.HashPassword(user, code));
+        }
+        string jsonContent = codes.ToString();
 
         IdentityResult result = await manager.SetAuthenticationTokenAsync(user, ProviderName, purpose, jsonContent);
         if (!result.Succeeded)
@@ -54,7 +55,7 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
             throw new Exception("Unable to save two factor recovery codes");
         }
 
-        return string.Join(';', recoveryCodes);
+        return string.Join(';', codes.Select(rc => rc.Value<string>()));
     }
 
     public async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
@@ -67,8 +68,14 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
         if (!(codes?.Any() ?? false))     // No codes available
             return false;
 
-        string hashedCode = HashString(token);
-        JToken? code = codes.FirstOrDefault(rc => rc.Value<string>() == hashedCode);
+        JToken? code = codes.FirstOrDefault(rc =>
+        {
+            string hashedSavedCode = rc.Value<string>()
+                ?? string.Empty;
+
+            PasswordVerificationResult result = _passwordHasher.VerifyHashedPassword(user, hashedSavedCode, token);
+            return result != PasswordVerificationResult.Failed;
+        });
         if (code is not null)     // Specified code found
         {
             codes.Remove(code);
@@ -82,8 +89,8 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
             if (!result.Succeeded)
             {
                 string jsonError = JsonConvert.SerializeObject(result.Errors);
-                _logger.LogError("Unable to save two factor recovery codes for user {0}; Error: {1}", user.Id, jsonError);
-                throw new Exception("Unable to save two factor recovery codes");
+                _logger.LogError("Unable to invalidate used two factor recovery codes for user {0}; Error: {1}", user.Id, jsonError);
+                throw new Exception("Unable to invalidate used two factor recovery codes");
             }
 
             return true;
@@ -139,19 +146,5 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
     {
         ArgumentNullException.ThrowIfNull(user, nameof(user));
         return await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);
-    }
-
-    /// <summary>
-    /// Hashes a string with SHA1
-    /// </summary>
-    /// <param name="data">The string to hash</param>
-    /// <returns>The result hash as base64</returns>
-    private static string HashString(string data)
-    {
-        ArgumentNullException.ThrowIfNullOrEmpty(data, nameof(data));
-
-        byte[] dataBytes = Encoding.UTF8.GetBytes(data);
-        byte[] hashedBytes = SHA1.HashData(dataBytes);
-        return Convert.ToBase64String(hashedBytes);
     }
 }

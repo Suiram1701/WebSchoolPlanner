@@ -19,11 +19,13 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
     public const string ProviderName = $"[{nameof(UserEmailTwoFactorTokenProvider<TUser>)}]";
 
     private readonly ILogger _logger;
+    private readonly IPasswordHasher<TUser> _passwordHasher;
     private readonly EmailTwoFactorOptions _options;
 
-    public UserEmailTwoFactorTokenProvider(ILogger<UserEmailTwoFactorTokenProvider<TUser>> logger, IOptions<EmailTwoFactorOptions> optionsAccessor)
+    public UserEmailTwoFactorTokenProvider(ILogger<UserEmailTwoFactorTokenProvider<TUser>> logger, IPasswordHasher<TUser> passwordHasher, IOptions<EmailTwoFactorOptions> optionsAccessor)
     {
         _logger = logger;
+        _passwordHasher = passwordHasher;
         _options = optionsAccessor.Value;
     }
 
@@ -37,7 +39,8 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
         TimeSpan validSpan = TimeSpan.FromSeconds(_options.ExpirationTime);
         DateTimeOffset validOffset = DateTimeOffset.UtcNow.Add(validSpan);
 
-        TokenModel token = new(formattedCode, validOffset);
+        TokenModel token = new(validOffset);
+        token.SetToken(_passwordHasher, user, formattedCode);
         string tokenJson = JsonConvert.SerializeObject(token);
 
         // Create code in db
@@ -67,7 +70,7 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
                 return false;
             }
 
-            bool result = model.ValidateToken(token);
+            bool result = model.ValidateToken(_passwordHasher, user, token);
             if (result)
                 await RemoveAsync(manager, user, purpose);
 
@@ -149,40 +152,32 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
         }
 
         /// <summary>
-        /// Creates a new instance
+        /// Set a unhashed token
         /// </summary>
+        /// <param name="hasher">The hasher to use</param>
+        /// <param name="user">The user that owns the token</param>
         /// <param name="token">The token to set</param>
-        /// <param name="expires">The expires time</param>
-        public TokenModel(string token, DateTimeOffset expires) : this(expires)
-        {
-            SetToken(token);
-        }
-
-        /// <summary>
-        /// Set a token
-        /// </summary>
-        /// <param name="token">The token to set</param>
-        public void SetToken(string token) =>
-            _tokenHash = HashToken(token);
+        public void SetToken(IPasswordHasher<TUser> hasher, TUser user, string token) =>
+            _tokenHash = HashToken(hasher, user, token);
 
         /// <summary>
         /// Validates the specified token with the saved token
         /// </summary>
+        /// <param name="hasher">The hasher that hashed the token before</param>
+        /// <param name="user">The user that owns the code</param>
         /// <param name="token">The token to validate</param>
         /// <returns>The result</returns>
-        public bool ValidateToken(string token) =>
-            _tokenHash == HashToken(token);
+        public bool ValidateToken(IPasswordHasher<TUser> hasher, TUser user, string token) =>
+            hasher.VerifyHashedPassword(user, _tokenHash, token) != PasswordVerificationResult.Failed;
 
         /// <summary>
         /// Hashes a token
         /// </summary>
+        /// <param name="hasher">The password hasher to use</param>
+        /// <param name="user">The user that owns the code</param>
         /// <param name="token">The token to hash</param>
-        /// <returns>The base64 encoded hash</returns>
-        private string HashToken(string token)
-        {
-            byte[] tokenData = Encoding.UTF8.GetBytes(token);
-            byte[] data = SHA256.HashData(tokenData);
-            return Convert.ToBase64String(data);
-        }
+        /// <returns>The hashed code</returns>
+        private string HashToken(IPasswordHasher<TUser> hasher, TUser user, string token) =>
+            hasher.HashPassword(user, token);
     }
 }
