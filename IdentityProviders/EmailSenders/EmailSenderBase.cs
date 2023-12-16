@@ -25,7 +25,7 @@ public abstract class EmailSenderBase<TUser> : IEmailSender<TUser>
     /// <param name="body">The body of the email</param>
     /// <param name="purpose">The purpose to send the email (only internally used)</param>
     /// <returns>The async task</returns>
-    public abstract Task SendEmail(TUser user, string email, string subject, string body, string purpose);
+    public abstract Task SendEmailAsync(TUser user, string email, string subject, string body, string purpose);
 
     public Task SendConfirmationLinkAsync(TUser user, string email, string confirmationLink)
     {
@@ -51,6 +51,8 @@ public abstract class EmailSenderBase<TUser> : IEmailSender<TUser>
     /// <returns>The task</returns>
     public Task SendTwoFactorCodeAsync(TUser user, string email, string code)
     {
-        throw new NotImplementedException();
+        // TODO: Implement this with a real view
+        string content = "2fa code: " + code;
+        return SendEmailAsync(user, email, "2fa code", content, "EmailTwoFactor");
     }
 }

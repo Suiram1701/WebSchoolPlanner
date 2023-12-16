@@ -17,7 +17,7 @@ public class SendGridEmailSender<TUser> : EmailSenderBase<TUser>
         _options = optionsAccessor.Value;
     }
 
-    public override async Task SendEmail(TUser user, string email, string subject, string body, string purpose)
+    public override async Task SendEmailAsync(TUser user, string email, string subject, string body, string purpose)
     {
         SendGridMessage message = new()
         {

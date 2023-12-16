@@ -10,6 +10,16 @@ namespace WebSchoolPlanner.Db.Models;
 public class User : IdentityUser
 {
     /// <summary>
+    /// The dateTime of the last login
+    /// </summary>
+    public DateTime? LastLogin { get; set; }
+
+    /// <summary>
+    /// Indicates whether the user has email 2fa enabled
+    /// </summary>
+    public bool IsEmailTwoFactorEnabled { get; set; }
+
+    /// <summary>
     /// The account image
     /// </summary>
     public UserImageModel? AccountImage { get; set; }

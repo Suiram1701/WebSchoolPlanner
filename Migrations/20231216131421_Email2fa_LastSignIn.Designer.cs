@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using WebSchoolPlanner.Db;
 
@@ -11,9 +12,11 @@ using WebSchoolPlanner.Db;
 namespace WebSchoolPlanner.Migrations
 {
     [DbContext(typeof(WebSchoolPlannerDbContext))]
-    partial class WebSchoolPlannerDbContextModelSnapshot : ModelSnapshot
+    [Migration("20231216131421_Email2fa_LastSignIn")]
+    partial class Email2fa_LastSignIn
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

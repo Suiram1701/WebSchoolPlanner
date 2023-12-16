@@ -113,4 +113,21 @@ public static class UserManagerExtensions
         string purpose = Helpers.GetTwoFactorPurpose(method);
         return await userManager.VerifyUserTokenAsync(user, provider, purpose, token);
     }
+
+    /// <summary>
+    /// Set the last login date time to the specified value
+    /// </summary>
+    /// <param name="userManager">The user manager</param>
+    /// <param name="user">The user that have the specified time</param>
+    /// <param name="dateTime">The date time</param>
+    /// <returns>The result</returns>
+    public static async Task<IdentityResult> SetLastLoginAsync(this UserManager<User> userManager, User user, DateTime dateTime)
+    {
+        ArgumentNullException.ThrowIfNull(userManager, nameof(userManager));
+        ArgumentNullException.ThrowIfNull(user, nameof(user));
+        ArgumentNullException.ThrowIfNull(dateTime, nameof(dateTime));
+
+        user.LastLogin = dateTime;
+        return await userManager.UpdateAsync(user);
+    }
 }

@@ -115,6 +115,10 @@ public sealed class AuthController : Controller
                 return View(model);
             }
 
+            IdentityResult updateResult = await _userManager.SetLastLoginAsync(user, DateTime.UtcNow);
+            if (!updateResult.Succeeded)
+                _logger.LogError("An error happened while update the last login date of user {0}", user.Id);
+
             // successful
             _logger.LogInformation("Login from IPv4 {0} to user {1}", clientIP, user.Id);
             return this.RedirectToReturnUrl(returnUrl);
@@ -210,6 +214,10 @@ public sealed class AuthController : Controller
             SignInResult signInResult = await _signInManager.TwoFactorSignInAsync(model.TwoFactorMethod, model.Code, model.RememberMe);
             if (signInResult.Succeeded)     // Success
             {
+                IdentityResult updateResult = await _userManager.SetLastLoginAsync(user, DateTime.UtcNow);
+                if (!updateResult.Succeeded)
+                    _logger.LogError("An error happened while update the last login date of user {0}", user.Id);
+
                 _logger.LogInformation("2fa login from user {0}", user!.Id);
                 return this.RedirectToReturnUrl(returnUrl);
             }
