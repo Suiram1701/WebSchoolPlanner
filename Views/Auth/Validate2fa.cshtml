@@ -1,17 +1,29 @@
 ﻿@using System.Text
 @using Humanizer
 @using Microsoft.Extensions.Options
+@using Newtonsoft.Json
 @using WebSchoolPlanner.Options
+@using WebSchoolPlanner.Extensions;
 
 @model Validate2faModel;
 
 @inject IViewLocalizer _localizer;
-@inject IOptions<TotpAuthenticationOptions> _options;
+@inject IOptions<TotpAuthenticationOptions> _optionsAccessor;
+@inject UserManager<User> _userManager;
 
 @{
     ViewData["Title"] = _localizer["Title"];
 
+    TotpAuthenticationOptions options = _optionsAccessor.Value;
+
     string? confirmationReason = ViewBag.ConfirmationReason as string;
+    User user = ViewBag.User!;
+
+    bool appEnabled = user.TwoFactorEnabled;
+    bool emailEnabled = user.IsEmailTwoFactorEnabled;
+    bool recoveryEnabled = appEnabled || emailEnabled;
+    if  (recoveryEnabled)
+        recoveryEnabled &= await _userManager.CountTwoFactorRecoveryCodesAsync(user) > 0;
 }
 
 @section Stylesheets {
@@ -19,34 +31,116 @@
 }
 
 @section Scripts {
+    <script id="messages" type="application/json">
+        @Html.Raw(JsonConvert.SerializeObject(new
+        {
+            placeholder = new
+            {
+                App = _localizer["AppCodeLabel"].Value,
+                Email = _localizer["EmailCodeLabel"].Value,
+                Recovery = _localizer["RecoveryCodeLabel"].Value
+            }
+        }))
+    </script>
     <script src="~/js/Auth/Validate2fa.js"></script>
 }
 
 <div class="text-center d-flex flex-column justify-content-center w-100 m-auto form-validate">
 
     <h1 class="mb-3 fw-light">@_localizer["Title"]</h1>
-    <img src="~/img/phone_iphone.svg" height="52"/>
 
-    <p class="fw-light lead my-3">
-        @if (!string.IsNullOrEmpty(confirmationReason))
-            @_localizer["confirmation"]
-        else
-            @_localizer["2faSignIn"]
-    </p>
+    @if (!string.IsNullOrEmpty(confirmationReason))
+    {
+        <p class="fw-light lead">
+            @_localizer["confirmationSignIn"]
+        </p>
+    }
 
     <form id="codeForm" class="@{if (ViewBag.IsInvalid == true) {<text>form-invalid</text>}}"
         asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@ViewBag.ReturnUrl" asp-route-y="@ViewBag.ConfirmationReason" asp-antiforgery="true">
 
+        <div class="m-3">
+            <ul class="nav nav-tabs justify-content-center" role="tablist">
+                @{
+                    void RenderListHeader(TwoFactorMethod method, bool selected)
+                    {
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link @{if (selected) {<text>active</text>}}" type="button" role="tab" id="@(method)-tab" data-bs-toggle="tab" data-bs-target="#@(method)-tab-pane" aria-controls="@(method)-tab-pane"
+                                    aria-selected="@selected" data-tab-name="@(method)" data-method="@method.ToString()">
+                                @_localizer["TwoFactorMethod." + method.ToString()]
+                            </button>
+                        </li>
+                    }
+                }
+
+                @if (appEnabled)
+                {
+                    RenderListHeader(TwoFactorMethod.App, true);
+                }
+                @if (emailEnabled)
+                {
+                    RenderListHeader(TwoFactorMethod.Email, !appEnabled);
+                }
+                @if (recoveryEnabled)
+                {
+                    RenderListHeader(TwoFactorMethod.Recovery, false);
+                }
+            </ul>
+        </div>
+
+        <div class="tab-content" id="presentation">
+            @{
+                void RenderTabItem(TwoFactorMethod method, bool show, string image)
+                {
+                    <div id="@(method)-tab-pane" class="tab-pane fade show @{if (show) {<text>active</text>}}">
+                        <img src="/img/@(image)" height="52" />
+
+                        <p class="fw-light lead my-3">
+                            @_localizer[method.ToString() + "SignIn"]
+                        </p>
+                    </div>
+                }
+            }
+
+            @if (appEnabled)
+            {
+                RenderTabItem(TwoFactorMethod.App, true, "phone_iphone.svg");
+            }
+            @if (emailEnabled)
+            {
+                RenderTabItem(TwoFactorMethod.Email, !appEnabled, "mail.svg");
+            }
+            @if (recoveryEnabled)
+            {
+                RenderTabItem(TwoFactorMethod.Recovery, false, "password.svg");
+            }
+        </div>
+
+        @{
+            TwoFactorMethod activeMethod = appEnabled
+                ? TwoFactorMethod.App
+                : TwoFactorMethod.Email;
+        }
+
+        @{
+            string btnProperties = string.Empty;
+            if (activeMethod != TwoFactorMethod.Email)
+                btnProperties += "hidden";
+        }
+        @if (emailEnabled)
+        {
+            <button type="button" id="sendCode" class="btn btn-primary w-100 mb-3" data-codeLabel="@_localizer["ReSendCode"]" @btnProperties>
+                @_localizer["SendCode"]
+            </button>
+        }
+
         <!-- code input -->
         <div class="form-floating">
-            @{
-                StringBuilder placeHolderBuilder = new();
-                for (int i = 1; i <= _options.Value.DigitsCount; i++)
-                    placeHolderBuilder.Append('X');
-            }
-            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="@placeHolderBuilder.ToString()" autocomplete="off" required data-digit-count="@_options.Value.DigitsCount" />
-            <label for="codeInput">@_localizer["codeLabel", _options.Value.DigitsCount]</label>
+            <input type="text" class="form-control" id="codeInput" asp-for="Code" placeholder="code" autocomplete="off" required data-digit-count="@options.DigitsCount" />
+            <label for="codeInput">@_localizer[activeMethod.ToString() + "CodeLabel"]</label>
         </div>
+
+        <input id="methodField" type="hidden" value="@(activeMethod)" asp-for="TwoFactorMethod"/>
 
         @if (ViewBag.IsLoginFailed ?? false)
         {

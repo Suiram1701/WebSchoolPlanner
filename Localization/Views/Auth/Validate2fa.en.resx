@@ -100,11 +100,8 @@
   <data name="Title" xml:space="preserve">
     <value>2FA verification</value>
   </data>
-  <data name="2faSignIn" xml:space="preserve">
+  <data name="AppSignIn" xml:space="preserve">
     <value>Please enter the code shown in your 2FA app to confirm your identity.</value>
-  </data>
-  <data name="codeLabel" xml:space="preserve">
-    <value>The {0} digit code</value>
   </data>
   <data name="InvalidData" xml:space="preserve">
     <value>The entered code is invalid</value>
@@ -121,10 +118,40 @@
   <data name="UserLocked" xml:space="preserve">
     <value>The user is currently blocked. Please try again {0}.</value>
   </data>
-  <data name="confirmation" xml:space="preserve">
+  <data name="confirmationSignIn" xml:space="preserve">
     <value>You are attempting to change a setting regarding the security of your account. Please enter the code shown in your 2FA app to confirm the action.</value>
   </data>
   <data name="Confirm" xml:space="preserve">
     <value>Confirm</value>
+  </data>
+  <data name="TwoFactorMethod.App" xml:space="preserve">
+    <value>Authentication app</value>
+  </data>
+  <data name="TwoFactorMethod.Email" xml:space="preserve">
+    <value>e-mail</value>
+  </data>
+  <data name="TwoFactorMethod.Recovery" xml:space="preserve">
+    <value>Restoration</value>
+  </data>
+  <data name="EmailCodeLabel" xml:space="preserve">
+    <value>The email code</value>
+  </data>
+  <data name="RecoveryCodeLabel" xml:space="preserve">
+    <value>The recovery code</value>
+  </data>
+  <data name="EmailSignIn" xml:space="preserve">
+    <value>Please enter the code contained in the email sent</value>
+  </data>
+  <data name="RecoverySignIn" xml:space="preserve">
+    <value>Please enter one of the recovery codes you received.</value>
+  </data>
+  <data name="AppCodeLabel" xml:space="preserve">
+    <value>The code displayed</value>
+  </data>
+  <data name="SendCode" xml:space="preserve">
+    <value>Send code</value>
+  </data>
+  <data name="ReSendCode" xml:space="preserve">
+    <value>send the code again</value>
   </data>
 </root>

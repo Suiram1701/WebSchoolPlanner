@@ -5,10 +5,11 @@ using System.Text;
 using Microsoft.Extensions.Options;
 using WebSchoolPlanner.Options;
 using System.Security.Cryptography;
+using WebSchoolPlanner.IdentityProviders.Interfaces;
 
 namespace WebSchoolPlanner.IdentityProviders;
 
-public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<TUser>
+public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<TUser>, IRemoveableToken<TUser>, ICountableToken<TUser>
     where TUser : IdentityUser
 {
     /// <summary>
@@ -105,13 +106,6 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
         return false;
     }
 
-    /// <summary>
-    /// Removes all recovery codes for the specified user
-    /// </summary>
-    /// <param name="manager">The userManager to use</param>
-    /// <param name="user">The user</param>
-    /// <param name="purpose">The purpose of the token to remove</param>
-    /// <returns>The result</returns>
     public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
         ArgumentNullException.ThrowIfNull(user, nameof(user));
@@ -128,14 +122,7 @@ public class UserTwoFactorRecoveryProvider<TUser> : IUserTwoFactorTokenProvider<
         return result;
     }
 
-    /// <summary>
-    /// Counts all valid 2fa recovery codes of the specified user
-    /// </summary>
-    /// <param name="purpose">The pupose of the token to count</param>
-    /// <param name="manager">The user manager to use</param>
-    /// <param name="user">The user</param>
-    /// <returns>The count</returns>
-    public async Task<int> CountCodesAsync(UserManager<TUser> manager, TUser user, string purpose)
+    public async Task<int> CountAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
         ArgumentNullException.ThrowIfNullOrWhiteSpace(purpose, nameof(purpose));
         ArgumentNullException.ThrowIfNull(manager, nameof(manager));

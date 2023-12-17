@@ -15,6 +15,7 @@ public static class IdentityBuilderExtensions
     public static IdentityBuilder AddTwoFactorTokenProviders<TUser>(this IdentityBuilder builder)
         where TUser : IdentityUser
     {
+        // The provider names that finally used are specified in UserManagerExtensions an SignInManagerExtensions
         builder.AddTokenProvider<UserTwoFactorTokenProvider<TUser>>(UserTwoFactorTokenProvider<TUser>.ProviderName);
         builder.AddTokenProvider<UserEmailTwoFactorTokenProvider<TUser>>(UserEmailTwoFactorTokenProvider<TUser>.ProviderName);
         builder.AddTokenProvider<UserTwoFactorRecoveryProvider<TUser>>(UserTwoFactorRecoveryProvider<TUser>.ProviderName);     // The GenerateAsync(string, UserManager<TUser>, TUser) of this provider have to the seperate every single recovery code by a ';'

@@ -30,7 +30,7 @@ public static class ControllerBaseExtensions
     /// <summary>
     /// Returns the api unauthorized response
     /// </summary>
-    public static ObjectResult ApiUnauthorized(ControllerBase controller)
+    public static ObjectResult ApiUnauthorized(this ControllerBase controller)
     {
         return controller.Problem(
             type: "Unauthorized",
@@ -41,11 +41,20 @@ public static class ControllerBaseExtensions
     /// <summary>
     /// Returns the api forbidden response
     /// </summary>
-    public static ObjectResult ApiForbidden(this ControllerBase controller)
+    public static ObjectResult ApiForbidden(this ControllerBase controller) =>
+        ApiForbidden(controller, "The signed in user doesn't have the required permissions.");
+
+    /// <summary>
+    /// Returns the api forbidden response
+    /// </summary>
+    /// <param name="controller">The controller</param>
+    /// <param name="reason">The reason</param>
+    /// <returns></returns>
+    public static ObjectResult ApiForbidden(this ControllerBase controller, string reason)
     {
         return controller.Problem(
             type: "Forbidden",
-            detail: string.Format("The requested method requires the needed authorization."),
+            detail: reason,
             statusCode: StatusCodes.Status403Forbidden);
     }
 

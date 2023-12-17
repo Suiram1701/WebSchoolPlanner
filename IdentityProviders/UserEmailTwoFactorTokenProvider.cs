@@ -3,6 +3,7 @@ using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System.Security.Cryptography;
 using System.Text;
+using WebSchoolPlanner.IdentityProviders.Interfaces;
 using WebSchoolPlanner.Options;
 
 namespace WebSchoolPlanner.IdentityProviders;
@@ -10,7 +11,7 @@ namespace WebSchoolPlanner.IdentityProviders;
 /// <summary>
 /// A provider for email two factor confirmation
 /// </summary>
-public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>
+public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>, IRemoveableToken<TUser>
     where TUser : IdentityUser
 {
     /// <summary>
@@ -76,13 +77,6 @@ public class UserEmailTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvide
         return result;
     }
 
-    /// <summary>
-    /// Removes any existing code from the user
-    /// </summary>
-    /// <param name="manager">The manager to use</param>
-    /// <param name="user">The user</param>
-    /// <param name="purpose">The purpose of the token</param>
-    /// <returns>The result</returns>
     public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
         IdentityResult result = await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);

@@ -10,6 +10,7 @@ using System.Runtime.CompilerServices;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
 using WebSchoolPlanner.IdentityProviders;
+using WebSchoolPlanner.IdentityProviders.EmailSenders;
 using WebSchoolPlanner.Models;
 using WebSchoolPlanner.Options;
 using SignInResult = Microsoft.AspNetCore.Identity.SignInResult;
@@ -159,7 +160,6 @@ public sealed class AuthController : Controller
     public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromQuery(Name = "y")] string? reason)
     {
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-        user ??= await _userManager.GetUserAsync(User);
 
         if (!_2faReasons.Contains(reason))     // Check only the 2fa conditions if it isn't a confirmation request
         {
@@ -167,8 +167,18 @@ public sealed class AuthController : Controller
                 return result;
         }
         else
-            ViewBag.ConfirmationReason = reason;
+        {
+            user = await _userManager.GetUserAsync(User);
+            if (user is null)     // Requires an signed in user
+            {
+                await HttpContext.ChallengeAsync();
+                return StatusCode(Response.StatusCode);
+            }
 
+            ViewBag.ConfirmationReason = reason;
+        }
+
+        ViewBag.User = user;
         ViewBag.ReturnUrl = returnUrl;
         return View();
     }
@@ -180,24 +190,26 @@ public sealed class AuthController : Controller
     public async Task<IActionResult> Validate2fa([FromQuery(Name = "r")] string? returnUrl, [FromQuery(Name = "y")] string? reason, [FromForm] Validate2faModel model)
     {
         User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
-        user ??= await _userManager.GetUserAsync(User);
-
-        if (user is null)     // Requires an authenticated user
-        {
-            await HttpContext.ForbidAsync();
-            return StatusCode(Response.StatusCode);
-        }
-
-        ViewBag.ConfirmationReason = reason;
+        
+        ViewBag.User = user;
         model.Code = model.Code.Replace(" ", string.Empty);
         if (ModelState.IsValid)
         {
             // Handles the reason of a 2fa confirmation
-            if (!string.IsNullOrEmpty(reason))
+            if (_2faReasons.Contains(reason))
             {
+                ViewBag.ConfirmationReason = reason;
+
+                user = await _userManager.GetUserAsync(User);
+                if (user is null)     // Requires an signed in user
+                {
+                    await HttpContext.ChallengeAsync();
+                    return StatusCode(Response.StatusCode);
+                }
+
                 if (await _userManager.VerifyTwoFactorAsync(user, model.TwoFactorMethod, model.Code))     // Success
                 {
-                    IActionResult handledConfirmation = await Handle2faConfirmationRequest(user!, returnUrl, reason);
+                    IActionResult handledConfirmation = await Handle2faConfirmationRequest(user!, returnUrl, reason!);
                     _logger.LogInformation("2fa confirmation for reason '{0}' succeeded for user {1}", reason, user!.Id);
                     return handledConfirmation;
                 }
@@ -214,9 +226,9 @@ public sealed class AuthController : Controller
             SignInResult signInResult = await _signInManager.TwoFactorSignInAsync(model.TwoFactorMethod, model.Code, model.RememberMe);
             if (signInResult.Succeeded)     // Success
             {
-                IdentityResult updateResult = await _userManager.SetLastLoginAsync(user, DateTime.UtcNow);
+                IdentityResult updateResult = await _userManager.SetLastLoginAsync(user!, DateTime.UtcNow);
                 if (!updateResult.Succeeded)
-                    _logger.LogError("An error happened while update the last login date of user {0}", user.Id);
+                    _logger.LogError("An error happened while update the last login date of user {0}", user!.Id);
 
                 _logger.LogInformation("2fa login from user {0}", user!.Id);
                 return this.RedirectToReturnUrl(returnUrl);
@@ -255,15 +267,15 @@ public sealed class AuthController : Controller
                     break;
 
                 // Remove every secret
-                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user, HttpContext.RequestServices);
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
                 if (!result.Succeeded)
                     break;
 
-                result = await _userManager.RemoveTwoFactorSecretAsync(user, HttpContext.RequestServices);
+                result = await _userManager.RemoveTwoFactorSecretAsync(user);
                 if (!result.Succeeded)
                     break;
 
-                result = await _userManager.RemoveEmailTwoFactorTokenAsync(user, HttpContext.RequestServices);
+                result = await _userManager.RemoveEmailTwoFactorTokenAsync(user);
                 if (!result.Succeeded)
                     break;
 
@@ -271,7 +283,7 @@ public sealed class AuthController : Controller
                     await _signInManager.ForgetTwoFactorClientAsync();
                 _logger.LogInformation("2fa feature for user {0} disabled", user.Id);
 
-                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user, HttpContext.RequestServices);
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
                 break;
             case "create2faRecovery":
                 (IActionResult? resultView, IdentityResult error) = await Create2faRecoveryAsync(user, returnUrl);
@@ -280,7 +292,7 @@ public sealed class AuthController : Controller
                 result = error;
                 break;
             case "remove2faRecovery":
-                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user, HttpContext.RequestServices);
+                result = await _userManager.RemoveTwoFactorRecoveryCodesAsync(user);
                 break;
             default:
                 throw new ArgumentException("The specified confirmation reason could not be found.", nameof(reason));
@@ -336,7 +348,7 @@ public sealed class AuthController : Controller
         }
 
         // Forbid if 2fa not enabled
-        if (!await _signInManager.IsTwoFactorEnabledAsync(user))
+        if (!(user.TwoFactorEnabled || user.IsEmailTwoFactorEnabled))
         {
             await HttpContext.ForbidAsync();
             return StatusCode(Response.StatusCode);
@@ -346,6 +358,23 @@ public sealed class AuthController : Controller
             return this.RedirectToReturnUrl(returnUrl);
 
         return null;
+    }
+
+    [HttpGet]
+    [AllowAnonymous]
+    [Route("2fa/email")]
+    public async Task<IActionResult> EmailConfirmation([FromServices] EmailSenderBase<User> emailSender)
+    {
+        User? user = await _signInManager.GetTwoFactorAuthenticationUserAsync();
+        if (user is null)
+            return this.ApiUnauthorized();
+
+        if (!user.IsEmailTwoFactorEnabled)
+            return this.ApiForbidden("The two factor signed in user doesn't have email two factor enabled.");
+
+        string code = await _userManager.GenerateEmailTwoFactorTokenAsync(user);
+        await emailSender.SendTwoFactorCodeAsync(user, user.Email!, code);
+        return Ok();
     }
 
     [HttpGet]

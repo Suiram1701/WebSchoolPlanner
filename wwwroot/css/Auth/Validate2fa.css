@@ -1,7 +1,5 @@
 ﻿.form-validate {
-    max-width: 500px;
-    padding: 1rem;
-    margin-top: 25%;
+    max-width: 750px;
 }
 
 .form-invalid input[id="codeInput"] {

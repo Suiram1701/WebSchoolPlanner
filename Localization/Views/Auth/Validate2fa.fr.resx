@@ -100,11 +100,8 @@
   <data name="Title" xml:space="preserve">
     <value>Vérification 2FA</value>
   </data>
-  <data name="2faSignIn" xml:space="preserve">
+  <data name="AppSignIn" xml:space="preserve">
     <value>Veuillez saisir le code affiché dans votre application 2FA pour confirmer votre identité.</value>
-  </data>
-  <data name="codeLabel" xml:space="preserve">
-    <value>Le code à {0} chiffres</value>
   </data>
   <data name="InvalidData" xml:space="preserve">
     <value>Le code saisi n'est pas valide</value>
@@ -121,10 +118,40 @@
   <data name="UserLocked" xml:space="preserve">
     <value>L'utilisateur est actuellement bloqué. Veuillez réessayer {0}.</value>
   </data>
-  <data name="confirmation" xml:space="preserve">
+  <data name="confirmationSignIn" xml:space="preserve">
     <value>Vous essayez de modifier un paramètre concernant la sécurité de votre compte. Veuillez saisir le code affiché dans votre application 2FA pour confirmer l'action.</value>
   </data>
   <data name="Confirm" xml:space="preserve">
     <value>Confirmer</value>
+  </data>
+  <data name="TwoFactorMethod.App" xml:space="preserve">
+    <value>Application d'authentification</value>
+  </data>
+  <data name="TwoFactorMethod.Email" xml:space="preserve">
+    <value>e-mail</value>
+  </data>
+  <data name="TwoFactorMethod.Recovery" xml:space="preserve">
+    <value>Restauration</value>
+  </data>
+  <data name="EmailCodeLabel" xml:space="preserve">
+    <value>Le code email</value>
+  </data>
+  <data name="RecoveryCodeLabel" xml:space="preserve">
+    <value>Le code de récupération</value>
+  </data>
+  <data name="EmailSignIn" xml:space="preserve">
+    <value>Veuillez saisir le code contenu dans l'email envoyé</value>
+  </data>
+  <data name="RecoverySignIn" xml:space="preserve">
+    <value>Veuillez saisir l'un des codes de récupération que vous avez reçus.</value>
+  </data>
+  <data name="AppCodeLabel" xml:space="preserve">
+    <value>Le code affiché</value>
+  </data>
+  <data name="SendCode" xml:space="preserve">
+    <value>Envoyer le code</value>
+  </data>
+  <data name="ReSendCode" xml:space="preserve">
+    <value>renvoie le code</value>
   </data>
 </root>

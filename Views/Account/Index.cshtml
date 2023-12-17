@@ -56,7 +56,7 @@
                 <div class="d-flex flex-wrap justify-content-center">
                     @{
                         bool appMfaEnabled = await _signInManager.IsTwoFactorEnabledAsync(user);
-                        bool emailMfaEnabled = false;
+                        bool emailMfaEnabled = user.IsEmailTwoFactorEnabled;
                         bool mfaRecoveryEnabled = appMfaEnabled || emailMfaEnabled;
                     }
 
@@ -94,7 +94,7 @@
                     </div>
 
                     @{
-                        int codeCount = await _userManager.CountTwoFactorRecoveryCodesAsync(user, Context.RequestServices);
+                        int codeCount = await _userManager.CountTwoFactorRecoveryCodesAsync(user);
                     }
                     @if (mfaRecoveryEnabled)
                     {

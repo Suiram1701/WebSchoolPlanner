@@ -100,11 +100,8 @@
   <data name="Title" xml:space="preserve">
     <value>2FA проверка</value>
   </data>
-  <data name="2faSignIn" xml:space="preserve">
+  <data name="AppSignIn" xml:space="preserve">
     <value>Пожалуйста, введите код, указанный в вашем приложении 2FA, чтобы подтвердить свою личность.</value>
-  </data>
-  <data name="codeLabel" xml:space="preserve">
-    <value>Цифровой код {0}</value>
   </data>
   <data name="InvalidData" xml:space="preserve">
     <value>Введенный код недействителен</value>
@@ -121,10 +118,40 @@
   <data name="UserLocked" xml:space="preserve">
     <value>На данный момент пользователь заблокирован. Пожалуйста, повторите попытку {0}.</value>
   </data>
-  <data name="confirmation" xml:space="preserve">
+  <data name="confirmationSignIn" xml:space="preserve">
     <value>Вы пытаетесь изменить настройки безопасности вашей учетной записи. Введите код, указанный в вашем приложении 2FA, чтобы подтвердить действие.</value>
   </data>
   <data name="Confirm" xml:space="preserve">
     <value>Подтверждать</value>
+  </data>
+  <data name="TwoFactorMethod.App" xml:space="preserve">
+    <value>Приложение для аутентификации</value>
+  </data>
+  <data name="TwoFactorMethod.Email" xml:space="preserve">
+    <value>электронная почта</value>
+  </data>
+  <data name="TwoFactorMethod.Recovery" xml:space="preserve">
+    <value>Реставрация</value>
+  </data>
+  <data name="EmailCodeLabel" xml:space="preserve">
+    <value>Код электронной почты</value>
+  </data>
+  <data name="RecoveryCodeLabel" xml:space="preserve">
+    <value>Код восстановления</value>
+  </data>
+  <data name="EmailSignIn" xml:space="preserve">
+    <value>Пожалуйста, введите код, содержащийся в отправленном электронном письме</value>
+  </data>
+  <data name="RecoverySignIn" xml:space="preserve">
+    <value>Пожалуйста, введите один из полученных вами кодов восстановления.</value>
+  </data>
+  <data name="AppCodeLabel" xml:space="preserve">
+    <value>Отображаемый код</value>
+  </data>
+  <data name="SendCode" xml:space="preserve">
+    <value>Отправить код</value>
+  </data>
+  <data name="ReSendCode" xml:space="preserve">
+    <value>отправь код еще раз</value>
   </data>
 </root>

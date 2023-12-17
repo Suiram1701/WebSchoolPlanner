@@ -6,6 +6,7 @@ using OtpNet;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using WebSchoolPlanner.Db.Models;
+using WebSchoolPlanner.IdentityProviders.Interfaces;
 using WebSchoolPlanner.Options;
 using static QRCoder.PayloadGenerator;
 using static QRCoder.PayloadGenerator.OneTimePassword;
@@ -16,7 +17,7 @@ namespace WebSchoolPlanner.IdentityProviders;
 /// The default implementation of <see cref="IUserTwoFactorTokenProvider{TUser}"/> using <see cref="Totp"/>
 /// </summary>
 /// <typeparam name="TUser">The type of the user</typeparam>
-public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>
+public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUser>, IRemoveableToken<TUser>
     where TUser : IdentityUser
 {
     /// <summary>
@@ -73,13 +74,6 @@ public class UserTwoFactorTokenProvider<TUser> : IUserTwoFactorTokenProvider<TUs
         return otp.VerifyTotp(token, out _);
     }
 
-    /// <summary>
-    /// Removes the token with the specified purpose
-    /// </summary>
-    /// <param name="manager">The manager to use</param>
-    /// <param name="user">The user</param>
-    /// <param name="purpose">The name of the token</param>
-    /// <returns>The result state</returns>
     public async Task<IdentityResult> RemoveAsync(UserManager<TUser> manager, TUser user, string purpose)
     {
         IdentityResult result = await manager.RemoveAuthenticationTokenAsync(user, ProviderName, purpose);

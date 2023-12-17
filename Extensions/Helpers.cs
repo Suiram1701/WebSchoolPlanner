@@ -8,8 +8,6 @@ namespace WebSchoolPlanner.Extensions;
 /// </summary>
 public static class Helpers
 {
-    private const string _twoFactorPurpose = "TwoFactor";
-
     /// <summary>
     /// Determines the two factor provider name to use
     /// </summary>
@@ -34,17 +32,5 @@ public static class Helpers
         }
 
         return provider;
-    }
-
-    /// <summary>
-    /// Returns the purpose name of the specified two factor method
-    /// </summary>
-    /// <param name="method">The method</param>
-    /// <returns>The purpose</returns>
-    public static string GetTwoFactorPurpose(TwoFactorMethod method)
-    {
-        return method == TwoFactorMethod.App
-            ? _twoFactorPurpose     // Return only the main purpose because its the main token
-            : method.ToString() + _twoFactorPurpose;
     }
 }
