@@ -154,4 +154,7 @@
   <data name="ReSendCode" xml:space="preserve">
     <value>Code erneut senden</value>
   </data>
+  <data name="Abort" xml:space="preserve">
+    <value>Abbrechen</value>
+  </data>
 </root>

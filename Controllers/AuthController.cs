@@ -52,10 +52,10 @@ public sealed class AuthController : Controller
     [HttpGet]
     [AllowAnonymous]
     [Route("login")]
-    public IActionResult Login([FromQuery(Name = "r")] string? returnUrl)
+    public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl)
     {
-        if (_signInManager.IsSignedIn(User))
-            return this.RedirectToReturnUrl(returnUrl);
+        if (await DoLoginRedirectIfNecessaryAsync(returnUrl) is IActionResult redirectResult)
+            return redirectResult;
 
         ViewBag.ReturnUrl = returnUrl;
         return View();
@@ -72,11 +72,11 @@ public sealed class AuthController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login([FromQuery(Name = "r")] string? returnUrl, [FromForm] LoginModel model)
     {
+        if (await DoLoginRedirectIfNecessaryAsync(returnUrl) is IActionResult redirectResult)
+            return redirectResult;
+
         IPAddress clientIP = HttpContext.Connection.RemoteIpAddress!.MapToIPv4();
         ViewBag.ReturnUrl = returnUrl;
-
-        if (_signInManager.IsSignedIn(User))     // Already signed in
-            return this.RedirectToReturnUrl(returnUrl);
 
         if (ModelState.IsValid)
         {
@@ -151,6 +151,17 @@ public sealed class AuthController : Controller
             return View(viewName, model);     // Display lockout msg
         }
 
+        return null;
+    }
+
+    private async Task<IActionResult?> DoLoginRedirectIfNecessaryAsync(string? returnUrl)
+    {
+        if (_signInManager.IsSignedIn(User))
+            return this.RedirectToReturnUrl(returnUrl);
+
+        AuthenticateResult mfaIdResult = await HttpContext.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme);
+        if (mfaIdResult.Succeeded)     // User is currently trying to do 2fa auth
+            return RedirectToAction(nameof(Validate2fa), new { r = returnUrl });
         return null;
     }
 
@@ -386,11 +397,8 @@ public sealed class AuthController : Controller
         {
             await _signInManager.SignOutAsync();
             _logger.LogInformation("User {0} logout", _userManager.GetUserId(User));
-            return RedirectToAction(nameof(Login));
         }
-
-        AuthenticateResult mfaIdResult = await HttpContext.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme);
-        if (mfaIdResult.Succeeded)
+        else if ((await HttpContext.AuthenticateAsync(IdentityConstants.TwoFactorUserIdScheme)).Succeeded)     // 2fa sign in abort
             await HttpContext.SignOutAsync(IdentityConstants.TwoFactorUserIdScheme);
 
         return RedirectToAction(nameof(Login));

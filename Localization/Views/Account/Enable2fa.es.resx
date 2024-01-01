@@ -115,4 +115,7 @@
   <data name="Submit" xml:space="preserve">
     <value>Activar</value>
   </data>
+  <data name="Abort" xml:space="preserve">
+    <value>Cancelar</value>
+  </data>
 </root>
