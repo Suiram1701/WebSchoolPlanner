@@ -101,7 +101,7 @@
     <value>2FA aktivieren</value>
   </data>
   <data name="codeLabel" xml:space="preserve">
-    <value>Der {0}-stellige Code</value>
+    <value>Der angezeigte Code</value>
   </data>
   <data name="guide" xml:space="preserve">
     <value>Bitte scannen Sie den QR-Code mit Ihrer Zwei-Faktor-Authentifizierungs-App und geben Sie den generierten Code in das Feld ein.</value>

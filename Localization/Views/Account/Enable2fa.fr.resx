@@ -100,9 +100,6 @@
   <data name="Title" xml:space="preserve">
     <value>Activer 2FA</value>
   </data>
-  <data name="codeLabel" xml:space="preserve">
-    <value>Le code à {0} chiffres</value>
-  </data>
   <data name="guide" xml:space="preserve">
     <value>Veuillez scanner le code QR avec votre application d'authentification à deux facteurs et saisir le code généré dans le champ.</value>
   </data>

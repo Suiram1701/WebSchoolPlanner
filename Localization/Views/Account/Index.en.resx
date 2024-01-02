@@ -145,4 +145,7 @@
   <data name="MFA_Recovery_Description" xml:space="preserve">
     <value>Recovery codes are one-time backup passwords for two-factor authentication. If the normal second factor is lost, they offer alternative access to the account.</value>
   </data>
+  <data name="MFA_App_Description" xml:space="preserve">
+    <value>A 2FA authentication app provides quick access to the second factor of 2FA authentication. The app generates a code every {0} that can be used for 2FA authentication.</value>
+  </data>
 </root>

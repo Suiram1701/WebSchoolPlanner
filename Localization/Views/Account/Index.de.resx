@@ -128,7 +128,7 @@
     <value>Dieser Browser ist aktuell für 2FA Anmeldungen gespeichert</value>
   </data>
   <data name="MFA_Recovery" xml:space="preserve">
-    <value>Zwei-Faktor-Wiederherstellung</value>
+    <value>2FA-Wiederherstellung</value>
   </data>
   <data name="MFA_Recovery_Remove" xml:space="preserve">
     <value>Wiederherstellungscodes entfernen</value>
@@ -140,9 +140,12 @@
     <value>Derzeit sind {0} Wiederherstellungscodes gültig.</value>
   </data>
   <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Wiederherstellungscodes sind einmalig gültige Backup-Passwörter für die Zwei-Faktor-Authentifizierung. Bei Verlust des normalen zweiten Faktors bieten sie einen alternativen Zugang zum Konto.</value>
+    <value>Wiederherstellungscodes sind einmalig gültige Backup-Passwörter für die 2FA-Authentifizierung. Bei Verlust des normalen zweiten Faktors bieten sie einen alternativen Zugang zum Konto.</value>
   </data>
   <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
     <value>Durch diese Aktion werden alle aktuellen Codes ungültig</value>
+  </data>
+  <data name="MFA_App_Description" xml:space="preserve">
+    <value>Eine 2FA-Authentifizierungs-App ermöglicht einen schnellen Zugang zum zweiten Faktor der 2FA-Authentifizierung. Die App generiert alle {0} einen Code, der zur 2FA-Authentifizierung genutzt werden kann.</value>
   </data>
 </root>

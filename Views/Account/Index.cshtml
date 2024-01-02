@@ -1,7 +1,13 @@
-﻿@using WebSchoolPlanner.Extensions
+﻿@using Microsoft.Extensions.Options
+@using WebSchoolPlanner.Controllers
+@using WebSchoolPlanner.Extensions;
+@using WebSchoolPlanner.Options;
+@using Humanizer;
+
 @inject IViewLocalizer _localizer;
 @inject SignInManager<User> _signInManager;
 @inject UserManager<User> _userManager;
+@inject IOptions<TotpAuthenticationOptions> _optionsAccessor;
 
 @{
     ViewData["Title"] = _localizer["Title"];
@@ -44,6 +50,10 @@
                 General
             </div>
             <div class="tab-pane fade" id="security-tab-pane" role="tabpanel" aria-labelledby="security-tab" tabindex="1">
+                @{
+                    string? returnUrl = Url.Action(nameof(AccountController.Index), "Account", null, null, null, "security");
+                    returnUrl = "/";
+                }
 
                 <!-- 2FA settings -->
                 <h3 class="text-start fw-light">@_localizer["MFA"]</h3>
@@ -67,6 +77,14 @@
                             <h4 class="fw-light">@_localizer["MFA_App"]</h4>
                         </div>
 
+                        <p class="text-body-secondary fw-light">
+                            @{
+                                TimeSpan codeValidSpan = _optionsAccessor.Value.ValidTimeSpan;
+                                string codeValidString = codeValidSpan.Humanize();
+                            }
+                            @_localizer["MFA_App_Description", codeValidString]
+                        </p>
+
                         <div class="d-flex flex-column my-2">
                             @if (appMfaEnabled)
                             {
@@ -83,7 +101,7 @@
                             }
                             else
                             {
-                                <a class="btn btn-primary" asp-controller="Account" asp-action="Enable2fa" asp-route-r="@ViewBag.ReturnUrl">@_localizer["Activate"]</a>
+                                <a class="btn btn-primary" asp-controller="Account" asp-action="Enable2fa" asp-route-r="@returnUrl">@_localizer["Activate"]</a>
                             }
                         </div>
                     </div>
