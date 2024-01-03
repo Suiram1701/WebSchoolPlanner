@@ -10,6 +10,7 @@ using System.Security.Claims;
 using WebSchoolPlanner.Db.Models;
 using WebSchoolPlanner.Extensions;
 using WebSchoolPlanner.IdentityProviders;
+using WebSchoolPlanner.IdentityProviders.EmailSenders;
 using WebSchoolPlanner.Models;
 using WebSchoolPlanner.Options;
 using static QRCoder.PayloadGenerator;
@@ -44,48 +45,42 @@ public sealed class AccountController : Controller
     }
 
     [HttpGet]
-    [Route("enable2fa")]
-    public async Task<IActionResult> Enable2fa([FromQuery(Name = "r")] string? returnUrl)
+    [Route("enable-2fa-app")]
+    public async Task<IActionResult> EnableApp2fa([FromQuery(Name = "r")] string? returnUrl)
     {
         User user = (await _userManager.GetUserAsync(User))!;
         if (await _signInManager.IsTwoFactorEnabledAsync(user))     // 2FA have to be disabled
-        {
-            await HttpContext.ForbidAsync();
-            return StatusCode(Response.StatusCode);
-        }
+            return Forbid(IdentityConstants.ApplicationScheme);
         
         string tokenProvider = _userManager.Options.Tokens.AuthenticatorTokenProvider;
         string base32Secret = await _userManager.GenerateTwoFactorTokenAsync(user, tokenProvider);
 
         byte[] secret = Base32Encoding.ToBytes(base32Secret);
         Create2faQRCode(user, secret);
-        Enable2faModel model = new(secret);
+        EnableApp2faModel model = new(secret);
 
         ViewBag.ReturnUrl = returnUrl;
         return View(model);
     }
 
     [HttpPost]
-    [Route("enable2fa")]
+    [Route("enable-2fa-app")]
     [ValidateAntiForgeryToken]
-    public async Task<IActionResult> Enable2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] Enable2faModel model, [FromServices] IOptions<TotpAuthenticationOptions> options)
+    public async Task<IActionResult> EnableApp2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] EnableApp2faModel model, [FromServices] IOptions<TotpAuthenticationOptions> options)
     {
         User user = (await _userManager.GetUserAsync(User))!;
+        if (await _signInManager.IsTwoFactorEnabledAsync(user))     // 2FA have to be disabled
+            return Forbid(IdentityConstants.ApplicationScheme);
 
-        model.Code = model.Code.Replace(" ", string.Empty);
         if (ModelState.IsValid)
         {
-            UserTwoFactorTokenProvider<User> twoFactorProvider = HttpContext.RequestServices.GetService<UserTwoFactorTokenProvider<User>>()!;
-            if (await twoFactorProvider.ValidateAsync("TwoFactor", model.Code, _userManager, user))
+            if (await _userManager.VerifyTwoFactorAsync(user, TwoFactorMethod.App, model.Code))
             {
-                IdentityResult setEnabledResult = await _userManager.SetTwoFactorEnabledAsync(user, true);
-                HandleIdentityResult(setEnabledResult);
-
-                if (model.RememberMe)
-                    await _signInManager.RememberTwoFactorClientAsync(user);
+                IdentityResult updateResult = await _userManager.SetTwoFactorEnabledAsync(user, true);
+                HandleEnable2faResult(updateResult, "app");
 
                 // Successful
-                _logger.LogInformation("2fa feature for user {0} enabled", user.Id);
+                _logger.LogInformation("2fa app feature for user {0} enabled", user.Id);
                 return this.RedirectToReturnUrl(returnUrl);
             }
             else
@@ -102,12 +97,67 @@ public sealed class AccountController : Controller
         }
 
         // Invalid model state
-        _logger.LogInformation("Invalid enable 2fa model state from user {0}", user.Id);
+        _logger.LogInformation("Invalid enable 2fa app model state from user {0}", user.Id);
         throw new ArgumentException("The request model state is invalid", nameof(model));
     }
 
     [HttpGet]
-    [Route("forget2fa")]
+    [Route("enable-2fa-email")]
+    public async Task<IActionResult> EnableEmail2fa([FromQuery(Name = "r")] string? returnUrl)
+    {
+        User user = (await _userManager.GetUserAsync(User))!;
+        if (user.IsEmailTwoFactorEnabled)
+            return Forbid(IdentityConstants.ApplicationScheme);
+
+        return View();
+    }
+
+    [HttpPost]
+    [Route("enable-2fa-email")]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EnableEmail2fa([FromQuery(Name = "r")] string? returnUrl, [FromForm] Enable2faModel model)
+    {
+        User user = (await _userManager.GetUserAsync(User))!;
+        if (user.IsEmailTwoFactorEnabled)     // Email 2fa is already enabled
+            return Forbid(IdentityConstants.ApplicationScheme);
+
+        if (ModelState.IsValid)
+        {
+            if (await _userManager.VerifyTwoFactorAsync(user, TwoFactorMethod.Email, model.Code))
+            {
+                IdentityResult updateResult = await _userManager.SetEmailTwoFactorEnabledAsync(user, true);
+                HandleEnable2faResult(updateResult, "email");
+
+                _logger.LogInformation("2fa email feature for user {0} enabled", user.Id);
+                return this.RedirectToReturnUrl(returnUrl);
+            }
+
+            ViewBag.ReturnUrl = returnUrl;
+            ViewBag.IsInvalid = true;
+
+            return View();
+        }
+
+        // Invalid model state
+        _logger.LogInformation("Invalid enable 2fa email model state from user {0}", user.Id);
+        throw new ArgumentException("The request model state is invalid", nameof(model));
+    }
+
+    [HttpGet]
+    [Route("enable-2fa-email/send")]
+    public async Task<IActionResult> EnableEmail2faSendEmail([FromServices] EmailSenderBase<User> emailSender)
+    {
+        User user = (await _userManager.GetUserAsync(User))!;
+        if (user.IsEmailTwoFactorEnabled)
+            return this.ApiForbidden("The signed in user isn't allowed to do this action");
+
+        string code = await _userManager.GenerateEmailTwoFactorTokenAsync(user);
+        await emailSender.SendTwoFactorCodeAsync(user, user.Email!, code);
+        return Ok();
+    }
+
+    [HttpGet]
+    [Route("forget-2fa")]
     public async Task<IActionResult> Forget2faRemembered([FromQuery(Name = "r")] string? returnUrl)
     {
         await _signInManager.ForgetTwoFactorClientAsync();
@@ -141,19 +191,19 @@ public sealed class AccountController : Controller
     }
 
     /// <summary>
-    /// Throws a exception and log it when the setSecretResult isn't successful
+    /// Throws a exception and log it when the <paramref name="result"/> isn't successful
     /// </summary>
     /// <param name="result">The setSecretResult</param>
-    /// <exception cref="Exception"></exception>
+    /// <param name="featureName">The name of the feature</param>
     [NonAction]
-    private void HandleIdentityResult(IdentityResult result)
+    private void HandleEnable2faResult(IdentityResult result, string featureName)
     {
         if (result.Succeeded)
             return;
 
         string errorJson = JsonConvert.SerializeObject(result.Errors);
-        _logger.LogError("An identity error happened while enable 2fa of user {0}; error: {1}", _userManager.GetUserId(User), errorJson);
-        throw new Exception("An occurred error happened while setting account settings.");
+        _logger.LogError("An identity error happened while enable 2fa {0} feature of user {1}; error: {2}", featureName, _userManager.GetUserId(User), errorJson);
+        throw new Exception(string.Format("An occurred error happened while enable 2fa {0}.", featureName));
     }
 
     [HttpGet]

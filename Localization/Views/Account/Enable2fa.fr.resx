@@ -115,4 +115,7 @@
   <data name="Abort" xml:space="preserve">
     <value>Annuler</value>
   </data>
+  <data name="codeLabel" xml:space="preserve">
+    <value>Le code affiché</value>
+  </data>
 </root>

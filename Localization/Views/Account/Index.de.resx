@@ -140,12 +140,18 @@
     <value>Derzeit sind {0} Wiederherstellungscodes gültig.</value>
   </data>
   <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Wiederherstellungscodes sind einmalig gültige Backup-Passwörter für die 2FA-Authentifizierung. Bei Verlust des normalen zweiten Faktors bieten sie einen alternativen Zugang zum Konto.</value>
+    <value>2FA-Wiederherstellungscodes sind einmalig gültige Backup-Passwörter für die 2FA-Authentifizierung. Bei Verlust des normalen zweiten Faktors bieten sie einen alternativen Zugang zum Konto.</value>
   </data>
   <data name="MFA_Recovery_CreateNew_Tooltip" xml:space="preserve">
     <value>Durch diese Aktion werden alle aktuellen Codes ungültig</value>
   </data>
   <data name="MFA_App_Description" xml:space="preserve">
     <value>Eine 2FA-Authentifizierungs-App ermöglicht einen schnellen Zugang zum zweiten Faktor der 2FA-Authentifizierung. Die App generiert alle {0} einen Code, der zur 2FA-Authentifizierung genutzt werden kann.</value>
+  </data>
+  <data name="MFA_Email_Description" xml:space="preserve">
+    <value>Die 2FA-Email-Authentifizierung bietet Ihnen durch an die hinterlegte E-Mail gesendeten Code zusätzliche Sicherheit. Dieser Code ist {0} gültig und einmalig verwendbar.</value>
+  </data>
+  <data name="MFA_Email" xml:space="preserve">
+    <value>Email-Authentifizierung</value>
   </data>
 </root>

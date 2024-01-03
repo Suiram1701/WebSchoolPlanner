@@ -5,7 +5,12 @@ public class Validate2faModel
     /// <summary>
     /// The by the user entered code
     /// </summary>
-    public string Code { get; set; }
+    public string Code
+    {
+        get => _code;
+        set => _code = value.Replace(" ", "");
+    }
+    private string _code;
 
     /// <summary>
     /// Remember the browser
@@ -19,7 +24,7 @@ public class Validate2faModel
 
     public Validate2faModel()
     {
-        Code = string.Empty;
+        _code = string.Empty;
         TwoFactorMethod = TwoFactorMethod.App;
     }
 }

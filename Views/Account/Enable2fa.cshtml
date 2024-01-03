@@ -3,7 +3,7 @@
 @using System.Text
 @using WebSchoolPlanner.Options
 
-@model Enable2faModel;
+@model EnableApp2faModel;
 
 @inject IViewLocalizer _localizer;
 @inject IOptions<TotpAuthenticationOptions> _options;
@@ -54,12 +54,6 @@
                 @_localizer["Invalid"]
             </div>
         }
-
-        <!-- Remember browser -->
-        <div class="checkbox mt-1">
-            <input type="checkbox" class="form-check-input" id="rememberMeInput" asp-for="RememberMe" />
-            <label class="form-check-label" for="rememberMeInput">@_localizer["RememberMeLabel"]</label>
-        </div>
 
         <input type="hidden" asp-for="Secret" value="@Model.Secret" />
 

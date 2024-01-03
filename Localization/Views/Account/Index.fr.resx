@@ -143,9 +143,15 @@
     <value>Cette action invalidera tous les codes actuels</value>
   </data>
   <data name="MFA_Recovery_Description" xml:space="preserve">
-    <value>Les codes de récupération sont des mots de passe de sauvegarde à usage unique pour l'authentification à deux facteurs. Si le deuxième facteur normal est perdu, ils proposent un accès alternatif au compte.</value>
+    <value>Les codes de récupération 2FA sont des mots de passe de sauvegarde à usage unique pour l'authentification 2FA. Si le deuxième facteur normal est perdu, ils proposent un accès alternatif au compte.</value>
   </data>
   <data name="MFA_App_Description" xml:space="preserve">
     <value>Une application d'authentification 2FA offre un accès rapide au deuxième facteur d'authentification 2FA. L'application génère un code tous les {0} qui peut être utilisé pour l'authentification 2FA.</value>
+  </data>
+  <data name="MFA_Email_Description" xml:space="preserve">
+    <value>L'authentification de courrier électronique 2FA vous offre une sécurité supplémentaire grâce à un code envoyé à l'e-mail enregistré. Ce code est {0} valide et peut être utilisé une fois.</value>
+  </data>
+  <data name="MFA_Email" xml:space="preserve">
+    <value>Authentification par email</value>
   </data>
 </root>

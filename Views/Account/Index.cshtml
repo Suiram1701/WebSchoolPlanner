@@ -7,7 +7,8 @@
 @inject IViewLocalizer _localizer;
 @inject SignInManager<User> _signInManager;
 @inject UserManager<User> _userManager;
-@inject IOptions<TotpAuthenticationOptions> _optionsAccessor;
+@inject IOptions<TotpAuthenticationOptions> _totpOptionsAccessor;
+@inject IOptions<EmailTwoFactorOptions> _emailOptionsAccessor;
 
 @{
     ViewData["Title"] = _localizer["Title"];
@@ -79,7 +80,7 @@
 
                         <p class="text-body-secondary fw-light">
                             @{
-                                TimeSpan codeValidSpan = _optionsAccessor.Value.ValidTimeSpan;
+                                TimeSpan codeValidSpan = _totpOptionsAccessor.Value.ValidTimeSpan;
                                 string codeValidString = codeValidSpan.Humanize();
                             }
                             @_localizer["MFA_App_Description", codeValidString]
@@ -88,12 +89,12 @@
                         <div class="d-flex flex-column my-2">
                             @if (appMfaEnabled)
                             {
-                                <a class="btn btn-danger" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="disable2fa">
+                                <a class="btn btn-danger" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@returnUrl" asp-route-y="disable2fa">
                                     @_localizer["Deactivate"]
                                 </a>
                                 @if (await _signInManager.IsTwoFactorClientRememberedAsync(user))
                                 {
-                                    <a class="btn btn-secondary mt-1" asp-controller="Account" asp-action="Forget2faRemembered" asp-route-r="/account#security"
+                                    <a class="btn btn-secondary mt-1" asp-controller="Account" asp-action="Forget2faRemembered" asp-route-r="@returnUrl"
                                        data-bs-toggle="tooltip" data-bs-placement="bottom" title="@_localizer["MFA_Forget_Tooltip"]">
                                        @_localizer["MFA_Forget"]
                                     </a>
@@ -107,13 +108,32 @@
                     </div>
 
                     <!-- Email auth -->
-                    <div class="m-4 security-item">
-                        Email
+                    <div class="d-flex flex-column flex-nowrap m-4 security-item">
+                        <div class="d-flex">
+                            <img src="~/img/mail.svg" class="me-2" height="35" width="35" />
+                            <h4 class="fw-light">@_localizer["MFA_Email"]</h4>
+                        </div>
+
+                        <p class="text-body-secondary fw-light">
+                            @_localizer["MFA_Email_Description", _emailOptionsAccessor.Value.ExpirationTime.Seconds().Humanize()]
+                        </p>
+
+                        <div class="d-flex flex-column my-2">
+                            @if (emailMfaEnabled)
+                            {
+                                <a class="btn btn-danger">
+                                    @_localizer["Deactivate"]
+                                </a>
+                            }
+                            else
+                            {
+                                <a class="btn btn-primary" asp-controller="Account" asp-action="@nameof(AccountController.EnableEmail2fa)" asp-route-r="@returnUrl">
+                                    @_localizer["Activate"]
+                                </a>
+                            }
+                        </div>
                     </div>
 
-                    @{
-                        int codeCount = await _userManager.CountTwoFactorRecoveryCodesAsync(user);
-                    }
                     @if (mfaRecoveryEnabled)
                     {
                         <!-- Recovery -->
@@ -127,6 +147,9 @@
                                 @_localizer["MFA_Recovery_Description"]
                             </p>
 
+                            @{
+                                int codeCount = await _userManager.CountTwoFactorRecoveryCodesAsync(user);
+                            }
                             <div class="d-flex flex-column my-2">
                                 @if (codeCount > 0)
                                 {
@@ -134,18 +157,18 @@
                                         @_localizer["MFA_Recovery_Count", codeCount]
                                     </p>
 
-                                    <a class="btn btn-primary" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="create2faRecovery"
+                                    <a class="btn btn-primary" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@returnUrl" asp-route-y="create2faRecovery"
                                        data-bs-toggle="tooltip" data-bs-placement="top" title="@_localizer["MFA_Recovery_CreateNew_Tooltip"]">
                                         @_localizer["MFA_Recovery_CreateNew"]
                                     </a>
 
-                                    <a class="btn btn-danger mt-1" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="remove2faRecovery">
+                                    <a class="btn btn-danger mt-1" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@returnUrl" asp-route-y="remove2faRecovery">
                                         @_localizer["MFA_Recovery_Remove"]
                                     </a>
                                 }
                                 else
                                 {
-                                    <a class="btn btn-primary" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="/account#security" asp-route-y="create2faRecovery">
+                                    <a class="btn btn-primary" asp-controller="Auth" asp-action="Validate2fa" asp-route-r="@returnUrl" asp-route-y="create2faRecovery">
                                         @_localizer["MFA_Recovery_CreateNew"]
                                     </a>
                                 }
